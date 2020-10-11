@@ -144,4 +144,23 @@ and the MC at:
 /eos/lhcb/wg/semileptonic/RXcHad/B02Dsttaunu/Run2/ntuples/norm/Bd_Dst3pi
 ```
 In these folders, you will find files for different years (`2015` and `2016`) and magnet polarities (`up` and `down`).
+
+## Some useful paths
+
+In the `bd2dst3pi/bd2dst3pi/locations.py` script, some useful shortcuts are defined:
+```python
+loc.ROOT = repo+'/'
+loc.OUT = loc.ROOT+'output/'
+loc.PLOTS = loc.OUT+'plots'
+loc.TABLES = loc.OUT+'tables'
+loc.JSON = loc.OUT+'json'
+loc.EOS = '/eos/lhcb/wg/semileptonic/RXcHad/B02Dsttaunu/Run2/ntuples/norm'
+loc.DATA = loc.EOS+'data'
+loc.MC = loc.EOS+'Bd_Dst3pi'
+```
+You can use these inside notebooks by doing:
+```python
+from fcc_python_tools.locations import loc
+```
+and then `loc.DATA` for example to get the path to the data files. You can add to this list if you like. You will notice some paths like `loc.JSON`, where you should store any `JSON` files you make, and `loc.PLOTS` where you should put the plots. This helps to keep all of your output organised nicely, and means you only define your paths in a single place.
  
