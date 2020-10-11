@@ -5,20 +5,20 @@ This GitHub repository houses code for the analysis of B0 -> D* 3pi decays using
 ## Setting up
 
 To clone this project, do this once you have logged into `lxplus`:
-```
+```bash
 git clone https://github.com/donalrinho/bd2dst3pi.git
 ```
 Then we need to set up a Python environment with all of the packages we require. To do this:
-```
+```bash
 cd bd2dst3pi
 source setup/setup_env.sh
 ```
 which will install a Conda environment called `bd2dst3pi_env`. You will be placed inside this env after the process completes. To leave the env at any time, do:
-```
+```bash
 conda deactivate
 ```
 and to re-enter the env, do:
-```
+```bash
 source setup/setup.sh
 ```
 
@@ -29,7 +29,7 @@ The Conda env we installed above comes with a full ROOT install, so it is possib
 Because we are working with files at CERN, our notebooks need to live on `lxplus`. This is why we have cloned the project above into `lxplus`. However, with a couple of steps, it is possible to use a web browser on our own machine (laptop/desktop) to veiw the notebooks.
 
 The first step is to add this function to your `~/.bashrc` file on `lxplus`:
-```
+```bash
 function jpt(){
     # Fires-up a Jupyter notebook by supplying a specific port
     jupyter notebook --no-browser --port=$1
@@ -38,14 +38,14 @@ function jpt(){
 export -f jpt
 ```
 This function can then be called from the terminal in `lxplus`, where you supply a port number like this:
-```
+```bash
 source .bashrc
 cd /afs/cern.ch/user/j/jsmith/bd2dst3pi
 source setup/setup.sh
 jpt 8889
 ```
 The next step is to access this port from our own local machine (laptop/desktop). This allows our local machine to "listen" to the remote `lxplus` machine. To do this, we add a function to the `.bashrc` (`.bash_profile` on a Mac) of our local machine:
-```
+```bash
 function jptt(){
     # Forwards port $1 into port $2 and listens to it
     ssh -N -f -L localhost:$2:localhost:$1 remoteuser@remotehost
@@ -54,11 +54,11 @@ function jptt(){
 export -f jptt
 ```
 Now we can run the following command to launch the notebook in our local browser:
-```
+```bash
 jptt 8889 8888
 ```
 Note that the first number mathces the one we specified on `lxplus` above, and then you choose a different one for your loacl machine. The final step is to type this into your local web browser:
-```
+```bash
 localhost:8888
 ```
 which should launch the notbook browser.
@@ -66,18 +66,18 @@ which should launch the notbook browser.
 **For any subsequent times you want to launch a notebook, you just need to do these steps:**
 
 From `lxplus`:
-```
+```bash
 source .bashrc
 cd /afs/cern.ch/user/j/jsmith/bd2dst3pi
 source setup/setup.sh
 jpt 8889
 ```
 From local machine:
-```
+```bash
 jppt 8888
 ```
 In web browser:
-```
+```bash
 localhost:8888
 ```
 
