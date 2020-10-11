@@ -63,6 +63,23 @@ localhost:8888
 ```
 which should launch the notbook browser.
 
+**For any subsequent times you want to launch a notebook, you just need to do these steps:**
+
+From `lxplus`:
+```
+source .bashrc
+cd /afs/cern.ch/user/j/jsmith/bd2dst3pi
+source setup/setup.sh
+jpt 8889
+```
+From local machine:
+```
+jppt 8888
+```
+In web browser:
+```
+localhost:8888
+```
 
 ## Some background information on the B0 -> D* 3pi decay 
 
