@@ -23,3 +23,4 @@ git clone git://github.com/henryiii/hepvector
 cd hepvector
 python setup.py install
 cd ..
+python -m ipykernel install --user --name=bd2dst3pi_env
