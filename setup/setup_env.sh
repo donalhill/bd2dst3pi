@@ -1,8 +1,8 @@
 export ANAROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
 
 wget -nv http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
-bash miniconda.sh -b -p $HOME/miniconda
-source $HOME/miniconda/etc/profile.d/conda.sh
+bash miniconda.sh -b -p /afs/cern.ch/work/${USER:0:1}/$USER/miniconda
+source /afs/cern.ch/work/${USER:0:1}/$USER/miniconda/etc/profile.d/conda.sh
 conda create -n bd2dst3pi_env python=3.7 root -c conda-forge
 conda activate bd2dst3pi_env
 conda config --env --add channels conda-forge
