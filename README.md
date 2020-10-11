@@ -60,3 +60,15 @@ In this project, we will study LHCb data and MC of the B0 -> D* 3pi decay, which
  
  - HSF analysis essentials tutorial [here](https://hsf-training.github.io/analysis-essentials/)
  
+## Location of data and MC files
+
+We will be working with 2015 and 2016 data and MC. The data are stored on the EOS filesystem at CERN. The data can be found at:
+```
+/eos/lhcb/wg/semileptonic/RXcHad/B02Dsttaunu/Run2/ntuples/norm/data
+```
+and the MC at:
+```
+/eos/lhcb/wg/semileptonic/RXcHad/B02Dsttaunu/Run2/ntuples/norm/Bd_Dst3pi
+```
+In these folders, you will find files for different years (`2015` and `2016`) and magnet polarities (`up` and `down`).
+ 
