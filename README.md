@@ -39,29 +39,43 @@ export -f jpt
 ```
 This function can then be called from the terminal in `lxplus`, where you supply a port number like this:
 ```bash
+ssh -Y jsmith@lxplus706.cern.ch
 source .bashrc
 cd /afs/cern.ch/user/j/jsmith/bd2dst3pi
 source setup/setup.sh
 jpt 8889
 ```
-The next step is to access this port from our own local machine (laptop/desktop). This allows our local machine to "listen" to the remote `lxplus` machine. To do this, we add a function to the `.bashrc` (`.bash_profile` on a Mac) of our local machine:
+Note that we have done this on a specific machine `706` on `lxplus`. The next step is to access this port from our own local machine (laptop/desktop). This allows our local machine to "listen" to the remote `lxplus` machine. To do this, we add a function to the `.bashrc` (`.bash_profile` on a Mac) of our local machine:
 ```bash
 function jptt(){
     # Forwards port $1 into port $2 and listens to it
-    ssh -N -f -L localhost:$2:localhost:$1 remoteuser@remotehost
+    ssh -N -f -L localhost:$2:localhost:$1 jsmith@lxplus706.cern.ch
 }
 
 export -f jptt
 ```
+Here, the function we have defined points to the specific machine `706` where we called the `jpt` command on `lxplus`. So just make sure you always use `706` when doing your `jpt` command.
+
 Now we can run the following command to launch the notebook in our local browser:
 ```bash
 jptt 8889 8888
 ```
-Note that the first number mathces the one we specified on `lxplus` above, and then you choose a different one for your loacl machine. The final step is to type this into your local web browser:
+Note that the first port number mathces the one we specified on `lxplus` above. We then choose a different port for your loacl machine. The final step is to type this into your local web browser:
 ```bash
 localhost:8888
 ```
-which should launch the notbook browser.
+which should launch the notbook browser. You will need to put in a password, which you will find in the screen output in your `lxplus` session. It will look like:
+```
+[I 19:49:51.138 NotebookApp] Loading IPython parallel extension
+[I 19:49:52.187 NotebookApp] JupyterLab extension loaded from /afs/cern.ch/work/d/dhill/miniconda/envs/bd2dst3pi_env/lib/python3.7/site-packages/jupyterlab
+[I 19:49:52.188 NotebookApp] JupyterLab application directory is /afs/cern.ch/work/d/dhill/miniconda/envs/bd2dst3pi_env/share/jupyter/lab
+[I 19:49:52.192 NotebookApp] Serving notebooks from local directory: /afs/cern.ch/user/d/dhill/bd2dst3pi
+[I 19:49:52.192 NotebookApp] Jupyter Notebook 6.1.4 is running at:
+[I 19:49:52.192 NotebookApp] http://localhost:8889/?token=31767d06a5338b4d84d092c9e93d02291b543e1bb042ef6d
+[I 19:49:52.192 NotebookApp]  or http://127.0.0.1:8889/?token=31767d06a5338b4d84d092c9e93d02291b543e1bb042ef6d
+[I 19:49:52.192 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+```
+The password you need comes after the `token=` command on the sixth line, so `31767d06a5338b4d84d092c9e93d02291b543e1bb042ef6d` in this example.
 
 **For any subsequent times you want to launch a notebook, you just need to do these steps:**
 
