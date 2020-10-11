@@ -22,6 +22,20 @@ and to re-enter the env, do:
 source setup/setup.sh
 ```
 
+## Working on your own branch in Git
+
+For adding your own code and output plots/tables e.t.c., it is best for you to switch to your own Git branch. To do this:
+```bash
+git checkout -b your-new-branch
+```
+where `your-new-branch` is the name you give the branch. Then if you make a new notebook, for example, you can add it with:
+```bash
+git add notebooks/my_awesome_analysis.ipynb
+git commit -m "Adding my new great results."
+git push origin your-new-branch
+```
+This helps you to keep your own personal copy of the `bd2dst3pi` project. And if we need to, your changes can be merged into the master version with a `merge request`.
+
 ## Using Jupyter notebooks
 
 The Conda env we installed above comes with a full ROOT install, so it is possible to write code to analyse the data in ROOT C++ or PyROOT. For interactive analysis, it is nice to work in [Jupyter notebooks](https://jupyter.org/). With these notebooks, you can combine code blocks with documentation (even inclduing LaTeX maths) to explain what various steps are doing. This is a good way to learn and also to explain your work to others. The notbooks also render any plots you make interactively, so you can see your output directly in your browser.
@@ -169,3 +183,4 @@ and then `loc.DATA` for example to get the path to the data files. You can add t
 All of the example notebooks are in the `bd2dst3pi/notebooks` folder. Once you have launched your Jupyter session in your browser following the instuctions above, you can go into the `notebooks` folder and click on an example notebook. When you start making your own notebooks, you can add them into this folder as well.
 
 To make a new notebook, you can click on the `New` button to the right of your Jupyter window. In the menu shown, select `bd2dst3pi_env` to choose the analysis Conda env we made above.
+
