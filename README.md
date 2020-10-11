@@ -22,6 +22,48 @@ and to re-enter the env, do:
 source setup/setup.sh
 ```
 
+## Using Jupyter notebooks
+
+The Conda env we installed above comes with a full ROOT install, so it is possible to write code to analyse the data in ROOT C++ or PyROOT. For interactive analysis, it is nice to work in [Jupyter notebooks](https://jupyter.org/). With these notebooks, you can combine code blocks with documentation (even inclduing LaTeX maths) to explain what various steps are doing. This is a good way to learn and also to explain your work to others. The notbooks also render any plots you make interactively, so you can see your output directly in your browser.
+
+Because we are working with files at CERN, our notebooks need to live on `lxplus`. This is why we have cloned the project above into `lxplus`. However, with a couple of steps, it is possible to use a web browser on our own machine (laptop/desktop) to veiw the notebooks.
+
+The first step is to add this function to your `~/.bashrc` file on `lxplus`:
+```
+function jpt(){
+    # Fires-up a Jupyter notebook by supplying a specific port
+    jupyter notebook --no-browser --port=$1
+}
+
+export -f jpt
+```
+This function can then be called from the terminal in `lxplus`, where you supply a port number like this:
+```
+source .bashrc
+cd /afs/cern.ch/user/j/jsmith/bd2dst3pi
+source setup/setup.sh
+jpt 8889
+```
+The next step is to access this port from our own local machine (laptop/desktop). This allows our local machine to "listen" to the remote `lxplus` machine. To do this, we add a function to the `.bashrc` (`.bash_profile` on a Mac) of our local machine:
+```
+function jptt(){
+    # Forwards port $1 into port $2 and listens to it
+    ssh -N -f -L localhost:$2:localhost:$1 remoteuser@remotehost
+}
+
+export -f jptt
+```
+Now we can run the following command to launch the notebook in our local browser:
+```
+jptt 8889 8888
+```
+Note that the first number mathces the one we specified on `lxplus` above, and then you choose a different one for your loacl machine. The final step is to type this into your local web browser:
+```
+localhost:8888
+```
+which should launch the notbook browser.
+
+
 ## Some background information on the B0 -> D* 3pi decay 
 
 A hot topic in the study of B-meson decays is the comparison of decays involving heavy tau leptons and lighter leptons (muon, electron). We can measure how often decays like B0 -> D* tau nu occur compared to how often B0 -> D* mu nu decays occur. The ratio of branching fractions for these two decays, `R(D*)`, is very precisely predicted in the Standard Model (SM). But measurements of `R(D*)` at LHCb and the B-factories are consistently higher than the SM prediction. This could be evidence of New Physics, or experimental systematic effects! 
