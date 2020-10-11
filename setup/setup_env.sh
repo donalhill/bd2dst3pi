@@ -22,3 +22,4 @@ cd $ANAROOT
 git clone git://github.com/henryiii/hepvector
 cd hepvector
 python setup.py install
+cd ..
