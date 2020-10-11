@@ -4,27 +4,23 @@ This GitHub repository houses code for the analysis of B0 -> D* 3pi decays using
 
 ## Setting up
 
-In this project, we will use Jupter notebooks to interactively work with LHCb data and Monte Carlo (MC) files. The simplest way to access the notebooks is using the CERN `Swan` service, which provides access via web browser to a CERN machine with a full LCG Python 3 setup. You can find details of Swan [here](https://swan.web.cern.ch/swan/). Using `Swan`, it is easy to open Jupyter notebooks on a CERN machine and interact with them using your web browser (Chrome, Firefox e.t.c.).
-
-Once you are in `Swan`, a few more Python packages are required. This can be done by clicking the terminal icon (`>_`) in `Swan`, which will open a new page with a terminal. You will be placed in `/eos/user/j/jsmith`, your EOS user area (if your name is Jane Smith!). In the terminal, do:
+To clone this project, do this once you have logged into `lxplus`:
 ```
-pip install --user awkward1 particle root_pandas uproot4 hepstats zfit scikit-learn
+git clone https://github.com/donalrinho/bd2dst3pi.git
 ```
-To donwload the `bd2dst3pi` project code in `Swan`, click on the cloud icon with an arrow on the right of your `My Projects` screen. In the box which appears, paste this link:
+Then we need to set up a Python environment with all of the packages we require. To do this:
 ```
-https://github.com/donalrinho/bd2dst3pi.git
+cd bd2dst3pi
+source setup/setup_env.sh
 ```
-This will place `bd2dst3pi` into `/eos/user/j/jsmith/SWAN_projects/bd2dst3pi`.
-
-### Important step
-
-Once you have downloaded `bd2dst3pi`, you need to reconfigure `Swan` to source the `bd2dst3pi/setup/setup.sh` script. This script adds the `bd2dst3pi` module to `PYTHONPATH`, and makes the base directory of the project (`ANAROOT`) known. To do this, click the three dots in the top right of your `Swan` browser window. Select the `Change configuration` option. This will let you redefine your `Swan` session login, where you can specify the path the the setup script in the `Environment script` box. Type the following into this box:
+which will install a Conda environment called `bd2dst3pi_env`. You will be placed inside this env after the process completes. To leave the env at any time, do:
 ```
-$CERNBOX_HOME/SWAN_projects/bd2dst3pi/setup/setup.sh
+conda deactivate
 ```
-to point to the setup script in your copy of `bd2dst3pi`.
-
-
+and to re-enter the env, do:
+```
+source setup/setup.sh
+```
 
 ## Some background information on the B0 -> D* 3pi decay 
 
