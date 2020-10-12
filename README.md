@@ -178,9 +178,10 @@ from fcc_python_tools.locations import loc
 ```
 and then `loc.DATA` for example to get the path to the data files. You can add to this list if you like. You will notice some paths like `loc.JSON`, where you should store any `JSON` files you make, and `loc.PLOTS` where you should put the plots. This helps to keep all of your output organised nicely, and means you only define your paths in a single place.
 
-## Opening Jupyter notebooks and making new ones
+## Example notebooks to get you started
 
 All of the example notebooks are in the `bd2dst3pi/notebooks` folder. Once you have launched your Jupyter session in your browser following the instuctions above, you can go into the `notebooks` folder and click on an example notebook. When you start making your own notebooks, you can add them into this folder as well.
 
 To make a new notebook, you can click on the `New` button to the right of your Jupyter window. In the menu shown, select `bd2dst3pi_env` to choose the analysis Conda env we made above.
 
+The example notebooks cover different aspects of data processing and fitting, to help you become familiar with some of the tools. They are numbered 1-5, so you can work through them in a logical order. In each notebook, there are some **follow-up** tasks to complete, which will help you to try out the tools yourself and understand things better. You can either edit existing notebooks to do more things, or make new notebooks.
