@@ -70,15 +70,17 @@ export -f jptt
 ```
 Here, the function we have defined points to the specific machine `706` where we called the `jpt` command on `lxplus`. So just make sure you always use `706` when doing your `jpt` command.
 
-Now we can run the following command to launch the notebook in our local browser:
+Now we  run the following command from a terminal in our local machine:
 ```bash
 jptt 8889 8888
 ```
-Note that the first port number mathces the one we specified on `lxplus` above. We then choose a different port for your loacl machine. The final step is to type this into your local web browser:
+Note that the first port number mathces the one we specified on `lxplus` above. We then choose a different port for your loacl machine. When you run this command, you will be asked to put in your CERN user account password (the one you use to login to `lxplus`).
+
+The final step is to type this into your local web browser:
 ```bash
 localhost:8888
 ```
-which should launch the notbook browser. You will need to put in a password, which you will find in the screen output in your `lxplus` session. It will look like:
+which should launch the notbook browser. In your browser, you will need to put in a password, which you will find in the screen output in your `lxplus` session. It will look something like this:
 ```
 [I 19:49:51.138 NotebookApp] Loading IPython parallel extension
 [I 19:49:52.187 NotebookApp] JupyterLab extension loaded from /afs/cern.ch/work/d/dhill/miniconda/envs/bd2dst3pi_env/lib/python3.7/site-packages/jupyterlab
@@ -89,22 +91,22 @@ which should launch the notbook browser. You will need to put in a password, whi
 [I 19:49:52.192 NotebookApp]  or http://127.0.0.1:8889/?token=31767d06a5338b4d84d092c9e93d02291b543e1bb042ef6d
 [I 19:49:52.192 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
 ```
-The password you need comes after the `token=` command on the sixth line, so `31767d06a5338b4d84d092c9e93d02291b543e1bb042ef6d` in this example.
+The password you need comes after the `token=` command on the sixth line. In this example, `31767d06a5338b4d84d092c9e93d02291b543e1bb042ef6d` is the password.
 
-**For any subsequent times you want to launch a notebook, you just need to do these steps:**
+**For any subsequent times you launch a notebook, you will just need to do these steps:**
 
-From `lxplus`:
+From an `lxplus` terminal:
 ```bash
 source .bashrc
 cd /afs/cern.ch/user/j/jsmith/bd2dst3pi
 source setup/setup.sh
 jpt 8889
 ```
-From local machine:
+From local machines terminal:
 ```bash
 jppt 8888
 ```
-In web browser:
+In your web browser:
 ```bash
 localhost:8888
 ```
