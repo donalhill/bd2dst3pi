@@ -127,15 +127,15 @@ In this project, we will study LHCb data and MC of the B0 -> D* 3pi decay, which
  
  - learn how to load `ROOT` files using the `root_pandas` package, putting the data into `pandas` DataFrame format.
  
- - learn how to calculate new variables in `pandas`, to study the flight distance of the tau candidate before it decays to three pions.
+ - learn how to calculate new variables in `pandas`.
  
  - plot variable distributions in B0 -> D* 3pi data and MC to compare them, making use of the `pandas` and `matplotlib` Python packages.
  
  - perform an invariant mass fit to the B0 -> D* 3pi MC sample using the `zfit` package.
  
- - perform a fit to the B0 -> D* 3pi decays in data, using our knowledge of `zfit` from the MC fit. The objective of the fit is to measure the `normalsiation yield`, so the total number of B0 -> D* 3pi decays in the peak. In the data fit, we will import some shape parameters measured in the B0 -> D* 3pi MC fit to help constrain the peak shape. To do this, we will learn how to store useful code output into `JSON` files, which can be read back into other scripts later. 
+ - perform a fit to the B0 -> D* 3pi decays in data, using our knowledge of `zfit` from the MC fit. The objective of the fit is to measure the `normalsiation yield` i.e. the total number of B0 -> D* 3pi decays in the peak. In the data fit, we will import some shape parameters measured in the B0 -> D* 3pi MC fit to help constrain the peak shape. To do this, we will learn how to store useful code output into `JSON` files, which can be read back into other scripts later. 
  
- - compare the B0 -> D* 3pi and B0 -> D* tau nu MC sample variable distributions, to understand some of the key similarities and differences between them. 
+ - perform a BDT selection using `scikit-learn` to distinguish between B0 -> D* 3pi signal events and combinatorial (random combinations) background.
  
  - learn how to write useful output numbers of the analysis into `LaTeX` tables, which can be used in your documentation. In particular, the normalisation yield measured in the data fit can be used in the measurement of `R(D*)`, so it is important to persist this to `JSON` format and also in `LaTeX` format for your report.
  
@@ -151,13 +151,17 @@ In this project, we will study LHCb data and MC of the B0 -> D* 3pi decay, which
  
 ## Location of data and MC files
 
-We will be working with 2015 and 2016 data and MC. The data are stored on the EOS filesystem at CERN. The data can be found at:
+We will be working with 2015 and 2016 data and MC. The data are stored on the EOS filesystem at CERN. The files can be found here:
 ```
-/eos/lhcb/wg/semileptonic/RXcHad/B02Dsttaunu/Run2/ntuples/norm/data
+/eos/lhcb/wg/semileptonic/RXcHad/B02Dsttaunu/Run2/ntuples/
 ```
-and the MC at:
+The fully selected normalisation mode data can be found in this sub-directory:
 ```
-/eos/lhcb/wg/semileptonic/RXcHad/B02Dsttaunu/Run2/ntuples/norm/Bd_Dst3pi
+/norm/data
+```
+and the fully selected MC is here:
+```
+/norm/Bd_Dst3pi
 ```
 In these folders, you will find files for different years (`2015` and `2016`) and magnet polarities (`up` and `down`).
 
@@ -170,9 +174,9 @@ loc.OUT = loc.ROOT+'output/'
 loc.PLOTS = loc.OUT+'plots'
 loc.TABLES = loc.OUT+'tables'
 loc.JSON = loc.OUT+'json'
-loc.EOS = '/eos/lhcb/wg/semileptonic/RXcHad/B02Dsttaunu/Run2/ntuples/norm'
-loc.DATA = loc.EOS+'data'
-loc.MC = loc.EOS+'Bd_Dst3pi'
+loc.EOS = '/eos/lhcb/wg/semileptonic/RXcHad/B02Dsttaunu/Run2/ntuples'
+loc.DATA = loc.EOS+'/norm/data'
+loc.MC = loc.EOS+'/norm/Bd_Dst3pi'
 ```
 You can use these inside notebooks by doing:
 ```python
