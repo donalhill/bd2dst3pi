@@ -6,6 +6,8 @@ class loc : pass
 loc.ROOT = repo+'/'
 #Output folder
 loc.OUT = loc.ROOT+'output/'
+#Script folder
+loc.SCRIPTS = loc.ROOT+'scripts/'
 #Plots, tables, and JSON folder in output
 loc.PLOTS = loc.OUT+'plots'
 loc.TABLES = loc.OUT+'tables'
@@ -19,3 +21,4 @@ loc.MC = loc.EOS+'/norm/Bd_Dst3pi'
 loc.DATA_STRIP = loc.EOS+'/stripped/data'
 loc.DATA_WS_STRIP = loc.EOS+'/stripped/dataWS'
 loc.MC_STRIP = loc.EOS+'/stripped/Bd_Dst3pi'
+loc.DATA_KPiPi = '/afs/cern.ch/user/d/dhill/public/forAnthony/Bd2DstKPiPi.root'
