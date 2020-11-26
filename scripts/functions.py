@@ -152,7 +152,7 @@ def load_dataframe(path, tree_name, columns, method='read_root'):
         return df
     
 
-def load_data(years=None, magnets=None, type_data='data', vars=['*'], method='read_root', 
+def load_data(years=None, magnets=None, type_data='data', vars=None, method='read_root', 
               name_BDT='adaboost_0.8_without_P_cutDeltaM', cut_DeltaM=False, cut_PIDK=None):
     """ return the pandas dataframe with the desired data
     
@@ -178,7 +178,7 @@ def load_data(years=None, magnets=None, type_data='data', vars=['*'], method='re
     retrieve_saved = False
     if 'BDT' in vars:
         cut_DeltaM = True
-    
+
     tree_name = "DecayTree"
     if type_data == 'MC':
         path = f"{loc.MC}/Bd_Dst3pi_11266018"
@@ -203,15 +203,21 @@ def load_data(years=None, magnets=None, type_data='data', vars=['*'], method='re
         saved_variables_allPIDK = ['B0_M', 'tau_M', 'BDT', 
                                    'tau_pion0_PIDK', 'tau_pion1_PIDK', 'tau_pion2_PIDK']
         
-        if list_included(vars, saved_variables_PIDK) and magnets == all_magnets and years == all_years and cut_PIDK=='PID' and cut_DeltaM:
+        if list_included(vars, ['B0_M','tau_M']) and magnets == all_magnets and years == all_years and cut_PIDK==None and cut_DeltaM:
             only_one_file = True
             retrieve_saved = True
-            complete_path = f"{loc.OUT}root/data_strip"
+            complete_path = f"{loc.OUT}root/all_data_strip.root"
+            tree_name = 'all_data_strip_cutDeltaM'
+            
+        elif list_included(vars, saved_variables_PIDK) and magnets == all_magnets and years == all_years and cut_PIDK=='PID' and cut_DeltaM:
+            only_one_file = True
+            retrieve_saved = True
+            complete_path = f"{loc.OUT}root/data_strip.root"
             tree_name = 'data_strip_cutDeltaM_cutPID'
             
         elif list_included(vars, saved_variables_allPIDK) and magnets == all_magnets and years == all_years and cut_PIDK=='ALL' and cut_DeltaM:
             only_one_file = True
-            Retrieve_saved = True
+            retrieve_saved = True
             complete_path = f"{loc.OUT}root/data_strip.root"
             tree_name = 'data_strip_cutDeltaM_cutallPIDK'
             
@@ -252,7 +258,6 @@ def load_data(years=None, magnets=None, type_data='data', vars=['*'], method='re
         
     dfr = {}
     dfr_tot = pd.DataFrame()
-    
     
     if only_one_file:
         dfr_tot = load_dataframe(complete_path, tree_name, vars, method=method)

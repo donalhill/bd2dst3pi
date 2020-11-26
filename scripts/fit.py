@@ -41,7 +41,8 @@ def get_frac_model(model, n_tot):
     @n_tot   :: total number of events (or yield of the total pdf)
     
     @return  :: number_element_model / n_tot
-    ''' 
+    '''
+    
     return model.get_yield()/n_tot
 
 def frac_model(x, model, frac=None):
@@ -77,14 +78,29 @@ def el_or_list_to_group(l, type_el=np.ndarray):
         groups_l = l
     
     return groups_l
+
+def get_chi2(fit_counts, counts):
+    """ chi2 of the fit
     
+    @fit_counts :: fitted number of counts
+    @counts     :: number of counts in the histogram of the fitted data
+    
+    @returns :: float, chi2 of the fit
+    """
+    diff = np.square(fit_counts-counts)
+    
+    n_bins = len(counts)
+    diff = np.divide(diff,counts,out=np.zeros_like(diff), where=counts!=0)
+    chi2 = np.sum(diff)/n_bins # sigma_i^2 = mu_i
+    return chi2
+
 #################################################################################################
 #################################### Sub-plotting functions #####################################
 #################################################################################################
     
     
 def plot_pull_diagram(ax, model, counts, centres, err, low=None, high=None, 
-                      plot_scaling=None, fontsize=25, color='b', color_lines='r'):
+                      plot_scaling=None, fontsize=25, color='b', color_lines='r', show_chi2=False):
     """
     Plot pull diagram of 'model' compared to the data given by (counts, centres)
     
@@ -95,6 +111,7 @@ def plot_pull_diagram(ax, model, counts, centres, err, low=None, high=None,
     @fontsize      :: fontsize of the labels
     @color         :: color of the pull diagram
     @color_lines   :: color of the lines y=0, y=2 and y=-2 (default is red)
+    @show_chi2     :: Boolean, if True, show chi2
     """
     
     ## Computing
@@ -122,9 +139,13 @@ def plot_pull_diagram(ax, model, counts, centres, err, low=None, high=None,
     ax.tick_params(axis='both', which='major', labelsize=20)
     ax.set_yticks([-2,0,2])
     #ax[1].grid()
-    ax.set_xlim([low,high])    
+    ax.set_xlim([low,high]) 
     
-def plot_fitted_curve(ax, model, plot_scaling, frac=None, line_width=2.5, 
+    if show_chi2:
+        chi2 = get_chi2(fit, counts)
+        ax.set_title(f'($\\chi^2$={chi2:.2f})', fontsize=fontsize)
+    
+def plot_fitted_curve(ax, model, plot_scaling, frac=None, line_width=2.5,
                       color='b',linestyle='-', low=None, high=None, label=None, x=None):
     """
     Plot fitted curve given by 'model'
@@ -154,8 +175,8 @@ name_PDF = {
 }
     
     
-def plot_fitted_curves(ax, models, plot_scaling, low, high, name_models=None,
-                       line_width=2.5, colors=None, fontsize_legend=16):
+def plot_fitted_curves(ax, models, plot_scaling, low, high, name_models=None, type_models=None, frac=None,
+                       line_width=2.5, colors=None, fontsize_legend=16, loc_leg='upper left'):
     """
     Plot fitted curve given by 'models', with labels given by name_models
     
@@ -165,6 +186,11 @@ def plot_fitted_curves(ax, models, plot_scaling, low, high, name_models=None,
     @low           :: low limit of the plot (x-axis)
     @high          :: high limit of the plot (x-axis)
     @name_models   :: str or list of str - name of the model that will appear in the label of the curve
+    @type_models   :: str, type of each mode (one character for each model):
+                        - 'm' : model (sum)
+                        - 's' : signal
+                        - 'b' : background
+                     initially None, which means that the first is 'm', the second is 's' and the other ones are 'b'
     @line_width    :: width of the curve lines
     @colors        :: 1 color or list of colors (one color for each model)
     @fontsize      :: fontsize of the legend
@@ -181,37 +207,56 @@ def plot_fitted_curves(ax, models, plot_scaling, low, high, name_models=None,
     # Get the total number of events in the models
     if len(models) > 1:
         model = models[0] # total PDF
-        n_tot = 0
-        for yield_model in model.get_yield().params.values():
-            n_tot += float(yield_model.value())
+        if frac is None:
+            n_tot = 0
+            for yield_model in model.get_yield().params.values():
+                n_tot += float(yield_model.value())
     
     # Plot the models
+    if type_models is None:
+        type_models = 'm'
+        if len(name_models) >= 2:
+            type_models += 's'
+            type_models += 'b'*(len(name_models)-2)
+    
+    name_type_models = {
+        'm' : 'model',
+        's' : 'signal',
+        'b' : 'background'
+    }
+    
     for k, model in enumerate(models):
         marker = model.name.find('_') 
         if marker == -1:
             marker = None
         label_model = name_PDF[model.name[:marker]]
-        if k != 0: 
-            frac = get_frac_model(model, n_tot)
+        if k != 0:
+            
+            if frac is None:
+                applied_frac = get_frac_model(model, n_tot)
+            elif k == 1:
+                applied_frac = frac
+            elif k == 2 :
+                applied_frac = 1 - frac
+            
             ls = '--'
-            if k==1:
-                label_model += ' - signal'
-            else:
-                label_model += ' - background'
+            
         else: # k = 0 is the total PDF
-            frac = None
+            applied_frac = None
             ls ='-'
-            label_model += ' - model'
         
+        label_model += f' - {name_type_models[type_models[k]]}'
+            
+            
         label_model = fct.add_text(label_model, name_models[k])
-        plot_fitted_curve(ax, model, plot_scaling, frac=frac, line_width=2.5, color=colors[k], 
+        plot_fitted_curve(ax, model, plot_scaling, frac=applied_frac, line_width=2.5, color=colors[k], 
                           linestyle = ls, label=label_model, x=x)
     
     if show_legend:
-        ax.legend(fontsize=fontsize_legend, loc='upper left')
+        ax.legend(fontsize=fontsize_legend, loc=loc_leg)
    
         
-def plot_result_fit(ax, params, name_params=None, fontsize=20, colWidths=[0.04,0.01,0.08,0.06], BDT_cut=None):
+def plot_result_fit(ax, params, name_params=None, fontsize=20, colWidths=[0.04,0.01,0.08,0.06], loc='upper right'):
     """
     Plot fitted the results of the fit in a table
     
@@ -251,7 +296,7 @@ def plot_result_fit(ax, params, name_params=None, fontsize=20, colWidths=[0.04,0
             result_fit.append([surname_param,":",value_param_text,f'$\pm$ {error_param:.2g}']) 
 
     # Plot the table with the fitted parameters in the upper right part of the plot  
-    table = ax.table(result_fit,loc = 'upper right', edges = 'open',cellLoc='left',
+    table = ax.table(result_fit,loc=loc, edges='open', cellLoc='left',
               colWidths=colWidths)                 
     table.auto_set_font_size(False)
     table.set_fontsize(fontsize)
@@ -355,10 +400,11 @@ def launch_fit(model, data, extended = False):
 #################################################################################################   
     
 def plot_hist_fit(df, variable, name_var=None, unit_var=None,models=None, obs=None, n_bins=50, color='black', 
-                  name_models=None, mode_hist=True, linewidth=2.5, colors=None,
+                  name_models=None, type_models=None, frac=None,
+                  mode_hist=True, linewidth=2.5, colors=None,
                   name_data_title=False, title=None, fontsize_leg=20,
-                  name_file=None,name_folder=None,name_data=None, 
-                  params=None,name_params=None, colWidths=[0.04,0.01,0.08,0.06]):
+                  name_file=None,name_folder=None,name_data=None, show_chi2=False,
+                  params=None,name_params=None, colWidths=[0.04,0.01,0.06,0.06], loc_res='upper right', loc_leg='upper left'):
     """ Plot complete histogram with fitted curve, pull histogram and results of the fits, save it in plots/
     @df            :: pandas dataframe that contains all the variables, including 'variable'
     @variable      :: name of the variable to plot and fit
@@ -368,6 +414,11 @@ def plot_hist_fit(df, variable, name_var=None, unit_var=None,models=None, obs=No
     @n_bins        :: number of desired bins of the histogram
     @color         :: color of the histogram
     @name_models   :: str or list of str - name of the model that will appear in the label of the corresponding curves
+    @type_models   :: str, type of each mode (one character for each model):
+                        - 'm' : model (sum)
+                        - 's' : signal
+                        - 'b' : background
+                     initially None, which means that the first is 'm', the second is 's' and the other ones are 'b'
     @model_hist    :: Result 'result.params' of the minimisation of the loss function
                          given by launch_fit
     @mode_hist     :: if True, plot with bars,else, plot with points (and error)
@@ -405,7 +456,7 @@ def plot_hist_fit(df, variable, name_var=None, unit_var=None,models=None, obs=No
     counts,_,centres,err = fct.plot_hist_alone(ax[0], df[variable], n_bins,
                                                low, high, color, mode_hist, alpha = 0.1)
     
-    fct.change_ymax(ax[0], factor=1.1)
+    
     # Label
     bin_width = fct.get_bin_width(low, high, n_bins)
     fct.set_label_hist(ax[0], name_var, unit_var, bin_width, fontsize=25)
@@ -423,17 +474,19 @@ def plot_hist_fit(df, variable, name_var=None, unit_var=None,models=None, obs=No
         
     plot_scaling = get_plot_scaling(counts, obs, n_bins)
     #plot_fitted_curve(ax[0], model, plot_scaling, low, high)
-    plot_fitted_curves(ax[0], models, plot_scaling, low, high, name_models=name_models,
-                       line_width=2.5, colors=colors, fontsize_legend=fontsize_leg)
+    plot_fitted_curves(ax[0], models, plot_scaling, low, high, name_models=name_models, type_models=type_models,
+                       line_width=2.5, colors=colors, fontsize_legend=fontsize_leg, loc_leg=loc_leg, frac=frac)
+    
+    fct.change_ymax(ax[0], factor=1.1)
     
     ## Plot pull histogram
     plot_pull_diagram(ax[1], model, counts, centres, err, 
-                      low=low, high=high, plot_scaling=plot_scaling)
+                      low=low, high=high, plot_scaling=plot_scaling, show_chi2=show_chi2)
     
     
     ## Plot the fitted parameters of the fit
     if params is not None:
-        plot_result_fit(ax[0], params, name_params=name_params, fontsize=20, colWidths=colWidths)
+        plot_result_fit(ax[0], params, name_params=name_params, fontsize=20, colWidths=colWidths, loc=loc_res)
     
     # Save result
     plt.tight_layout()
