@@ -48,8 +48,11 @@ def apply_cut_DeltaM(df):
     @returns :: df cut on DeltaM
     
     """
+    n_events = len(df)
     df["Delta_M"] = df["Dst_M"] - df["D0_M"]
     df = df.query("Delta_M > 143. and Delta_M < 148.")
+    n_cut_events = len(df)
+    print(f"cut on PIDs have removed {n_events - n_cut_events} over {n_events} events")
     return df
 
 def apply_cut_PIDK(df, cut=4):
@@ -78,7 +81,8 @@ def apply_cut_PIDK(df, cut=4):
         df_cut = df_cut.query(f"(tau_pion{i}_PIDK < {cut}) | (Dst_ID*tau_pion{i}_ID)>0")
     
     n_cut_events = len(df_cut)
-    print(f"cut on PIDs have removed {n_events - n_cut_events} over {n_events} events")
+    
+    print(f"cut on DeltaM has removed {n_events - n_cut_events} over {n_events} events")
     return df_cut
 
 def apply_cut_allPIDK(df, cut=4):
@@ -180,14 +184,17 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
         cut_DeltaM = True
 
     tree_name = "DecayTree"
+    # MC data -------------------------------------------
     if type_data == 'MC':
         path = f"{loc.MC}/Bd_Dst3pi_11266018"
         ext = '_Sim09e-ReDecay01.root'
     
+    # Clean data ----------------------------------------
     elif type_data == 'data':
         path = f"{loc.DATA}/data_90000000"
         ext = '.root'
     
+    # MC data -------------------------------------------
     elif type_data == 'MCc':
         path = f"{loc.MC}/Bd_Dst3pi_11266018"
         ext = '_Sim09c-ReDecay01.root'
@@ -196,41 +203,56 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
         path = f"{loc.MC}/Bd_Dst3pi_11266018"
         ext = '_Sim09e-ReDecay01.root'
     
+    # new data strip ------------------------------------
     elif type_data == 'data_strip':
-        saved_variables_PIDK = ['B0_M', 'tau_M', 'BDT',
-                           'tau_pion0_ID', 'tau_pion1_ID', 'tau_pion2_ID','Dst_ID',
-                           'tau_pion0_PIDK', 'tau_pion1_PIDK', 'tau_pion2_PIDK']
-        saved_variables_allPIDK = ['B0_M', 'tau_M', 'BDT', 
-                                   'tau_pion0_PIDK', 'tau_pion1_PIDK', 'tau_pion2_PIDK']
-        
-        if list_included(vars, ['B0_M','tau_M']) and magnets == all_magnets and years == all_years and cut_PIDK==None and cut_DeltaM:
-            only_one_file = True
-            retrieve_saved = True
-            complete_path = f"{loc.OUT}root/all_data_strip.root"
-            tree_name = 'all_data_strip_cutDeltaM'
-            
-        elif list_included(vars, saved_variables_PIDK) and magnets == all_magnets and years == all_years and cut_PIDK=='PID' and cut_DeltaM:
-            only_one_file = True
-            retrieve_saved = True
-            complete_path = f"{loc.OUT}root/data_strip.root"
-            tree_name = 'data_strip_cutDeltaM_cutPID'
-            
-        elif list_included(vars, saved_variables_allPIDK) and magnets == all_magnets and years == all_years and cut_PIDK=='ALL' and cut_DeltaM:
-            only_one_file = True
-            retrieve_saved = True
-            complete_path = f"{loc.OUT}root/data_strip.root"
-            tree_name = 'data_strip_cutDeltaM_cutallPIDK'
-            
-        else:
+#         if list_included(vars, ['B0_M', 'tau_M', 'BDT']) and cut_DeltaM and magnets == all_magnets and years == all_years and cut_PIDK==None and name_BDT == 'adaboost_0.8_without_P_cutDeltaM' : 
+#             only_one_file = True
+#             retrieve_saved = True
+#             complete_path = f"{loc.OUT}root/data_strip/all_data_strip.root"
+#             tree_name = 'DecayTreeTuple/DecayTree'
+        if True:
             path = f"{loc.DATA_STRIP}/data_90000000"
             ext = '.root'
             tree_name = "DecayTreeTuple/DecayTree"
+        
+    # Previous data strip -------------------------------
+    elif type_data == 'data_strip_p':
+#         saved_variables_PIDK = ['B0_M', 'tau_M', 'BDT',
+#                            'tau_pion0_ID', 'tau_pion1_ID', 'tau_pion2_ID','Dst_ID',
+#                            'tau_pion0_PIDK', 'tau_pion1_PIDK', 'tau_pion2_PIDK']
+#         saved_variables_allPIDK = ['B0_M', 'tau_M', 'BDT', 
+#                                    'tau_pion0_PIDK', 'tau_pion1_PIDK', 'tau_pion2_PIDK']
+        
+#         if list_included(vars, ['B0_M','tau_M']) and magnets == all_magnets and years == all_years and cut_PIDK==None and cut_DeltaM:
+#             only_one_file = True
+#             retrieve_saved = True
+#             complete_path = f"{loc.OUT}root/data_strip_p/all_data_strip.root"
+#             tree_name = 'all_data_strip_cutDeltaM'
+            
+#         elif list_included(vars, saved_variables_PIDK) and magnets == all_magnets and years == all_years and cut_PIDK=='PID' and cut_DeltaM:
+#             only_one_file = True
+#             retrieve_saved = True
+#             complete_path = f"{loc.OUT}root/data_strip_p/data_strip.root"
+#             tree_name = 'data_strip_cutDeltaM_cutPID'
+            
+#         elif list_included(vars, saved_variables_allPIDK) and magnets == all_magnets and years == all_years and cut_PIDK=='ALL' and cut_DeltaM:
+#             only_one_file = True
+#             retrieve_saved = True
+#             complete_path = f"{loc.OUT}root/data_strip_p/data_strip.root"
+#             tree_name = 'data_strip_cutDeltaM_cutallPIDK'
+            
+        if True:
+            path = f"{loc.DATA_STRIP_p}/data_90000000"
+            ext = '.root'
+            tree_name = "DecayTreeTuple/DecayTree"
     
+    # wrong sign data strip -------------------------------------
     elif type_data == 'ws_strip':
         path = f"{loc.DATA_WS_STRIP}/dataWS_90000000"
         ext = '.root'
         tree_name = "DecayTreeTuple/DecayTree"
     
+    # Simulated wrong-sign data strip ---------------------------
     elif type_data == 'data_KPiPi':
         only_one_file = True
         complete_path = loc.DATA_KPiPi
@@ -273,7 +295,7 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
             print('cut on Delta_M')
             dfr_tot = apply_cut_DeltaM(dfr_tot)
         if mode_BDT:
-            dfr_tot['BDT'] = read_root(loc.OUT+f'tmp/BDT_{name_BDT}.root', 'BDT', columns=['BDT'])
+            dfr_tot['BDT'] = read_root(loc.OUT+f'tmp/{type_data}/BDT_{name_BDT}.root', 'BDT', columns=['BDT'])
         if cut_PIDK == 'PID': # NB: cut the PID after adding the BDT branch :)
             print('cut on PIDK')
             dfr_tot = apply_cut_PIDK(dfr_tot)

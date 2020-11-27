@@ -10,7 +10,7 @@ import BDT
 part_variables_to_plot = [] # particle,variable
 
 for particle in ['B0', 'Dst', 'tau_pion0', 'tau_pion1', 'tau_pion2']:
-    #part_variables_to_plot.append((particle,'P'))
+    part_variables_to_plot.append((particle,'P'))
     part_variables_to_plot.append((particle,'PT'))
 
 for particle in ['B0', 'Dst', 'tau']:
@@ -121,7 +121,7 @@ BDT.plot_roc(X_test, y_test, bdt, name_BDT, name_folder = name_BDT)
 print("overtraining check")
 BDT.compare_train_test(bdt, X_train, y_train, X_test, y_test,name_BDT = name_BDT, name_folder = name_BDT)
 print("apply the BDT to our data")
-BDT.apply_BDT(df_tot,df_train, bdt,name_BDT=name_BDT)
+BDT.apply_BDT(df_tot['data_strip'],df_train['data_strip'], bdt,name_BDT=name_BDT)
 
 
 print("The end")

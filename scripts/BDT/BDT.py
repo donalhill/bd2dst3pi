@@ -392,7 +392,7 @@ def compare_train_test(clf, X_train, y_train, X_test, y_test, bins=30, name_BDT=
 
 from root_numpy import array2root
 
-def apply_BDT(df_tot, df_train, bdt,name_BDT=""):
+def apply_BDT(df_tot, df_train, bdt,name_BDT="", save_BDT=False):
     """ 
     Apply the BDT to the real data in df_tot['data_strip']
     Add the BDT output as a new variable in df_tot['data_strip']
@@ -400,21 +400,22 @@ def apply_BDT(df_tot, df_train, bdt,name_BDT=""):
     In addition, save the BDT output in a separated root file {loc.OUT}/tmp/BDT_{name_BDT}.root (branch 'BDT')
     Also save the BDT in a pickle file {loc.OUT}/pickle/bdt_{name_BDT}.pickle
     
-    @df_tot        :: dictionnary  of pandas dataframe, whose one of the key is  'data_strip'. 
-                            df_tot['data_strip'] is the dataframe that contains the real data.
+    @df_tot        :: pandas dataframe that will be saved together with the BDT output
+    df_train       :: pandas dataframe with exactly the variables that have been used for the training 
     @bdt           :: trained BDT                
     @name_BDT      :: str, name of the BDT, used for the name of the saved files
     """
     
     # Apply the BDT to the 
-    df_tot['data_strip']['BDT'] = bdt.decision_function(df_train['data_strip'])
+    df_tot['BDT'] = bdt.decision_function(df_train)
     if name_BDT != "":
         name_BDT = '_' + name_BDT
     
     df = pd.DataFrame()
-    df['BDT'] = df_tot['data_strip']['BDT']
+    df['BDT'] = df_tot['BDT']
     df.to_root(loc.OUT + f"tmp/BDT{name_BDT}.root",key = 'BDT')
-    df_tot['data_strip'].to_root(loc.OUT + f"root/data_strip{name_BDT}.root",key = 'DecayTreeTuple/DecayTree')
+    df_tot.to_root(loc.OUT + f"root/data_strip{name_BDT}.root",key = 'DecayTreeTuple/DecayTree')
 
-    with open(loc.OUT + "pickle/bdt"+name_BDT+".pickle","wb") as f:
-        pickle.dump(bdt,f)
+    if save_BDT:
+        with open(loc.OUT + "pickle/bdt"+name_BDT+".pickle","wb") as f:
+            pickle.dump(bdt,f)
