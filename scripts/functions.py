@@ -205,18 +205,18 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
     
     # new data strip ------------------------------------
     elif type_data == 'data_strip':
-#         if list_included(vars, ['B0_M', 'tau_M', 'BDT']) and cut_DeltaM and magnets == all_magnets and years == all_years and cut_PIDK==None and name_BDT == 'adaboost_0.8_without_P_cutDeltaM' : 
-#             only_one_file = True
-#             retrieve_saved = True
-#             complete_path = f"{loc.OUT}root/data_strip/all_data_strip.root"
-#             tree_name = 'DecayTreeTuple/DecayTree'
-        if True:
+        if list_included(vars, ['B0_M', 'tau_M', 'BDT']) and cut_DeltaM and magnets == all_magnets and years == all_years and cut_PIDK==None and name_BDT == 'adaboost_0.8_without_P_cutDeltaM' : 
+            only_one_file = True
+            retrieve_saved = True
+            complete_path = f"{loc.OUT}root/data_strip/all_data_strip.root"
+            tree_name = 'DecayTreeTuple/DecayTree'
+        else:
             path = f"{loc.DATA_STRIP}/data_90000000"
             ext = '.root'
             tree_name = "DecayTreeTuple/DecayTree"
         
     # Previous data strip -------------------------------
-    elif type_data == 'data_strip_p':
+#     elif type_data == 'data_strip_p':
 #         saved_variables_PIDK = ['B0_M', 'tau_M', 'BDT',
 #                            'tau_pion0_ID', 'tau_pion1_ID', 'tau_pion2_ID','Dst_ID',
 #                            'tau_pion0_PIDK', 'tau_pion1_PIDK', 'tau_pion2_PIDK']
@@ -241,10 +241,10 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
 #             complete_path = f"{loc.OUT}root/data_strip_p/data_strip.root"
 #             tree_name = 'data_strip_cutDeltaM_cutallPIDK'
             
-        if True:
-            path = f"{loc.DATA_STRIP_p}/data_90000000"
-            ext = '.root'
-            tree_name = "DecayTreeTuple/DecayTree"
+#         else:
+#             path = f"{loc.DATA_STRIP_p}/data_90000000"
+#             ext = '.root'
+#             tree_name = "DecayTreeTuple/DecayTree"
     
     # wrong sign data strip -------------------------------------
     elif type_data == 'ws_strip':
