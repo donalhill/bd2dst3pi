@@ -1,6 +1,8 @@
 from root_pandas import read_root
 from variables import *
 
+import pickle
+
 from bd2dst3pi.locations import loc
 from bd2dst3pi.definitions import years as all_years
 from bd2dst3pi.definitions import magnets as all_magnets
@@ -27,6 +29,18 @@ rcParams['axes.unicode_minus'] = False
 #################################################################################################
 ######################################## DATA function ##########################################
 ################################################################################################# 
+
+def try_makedirs(directory):
+    """If they don't not exist, create all the directories
+    
+    @directory   :: str, path
+    
+    """
+    try:
+        makedirs(directory)
+    except OSError:
+        pass
+
 
 def list_included(L1,L2):
     ''' Return True if L1 included in L2
@@ -155,7 +169,26 @@ def load_dataframe(path, tree_name, columns, method='read_root'):
         del file
         return df
     
-
+def dump_pickle(data, name_data):
+    """ Save the data in a pickle file in {loc.OUT}/pickle/
+    @data      :: element to be saved (can be a list)
+    @name_data :: str, name of the pickle file
+    """
+    directory = f'{loc.OUT}/pickle/{name_data}.pickle'
+    with open(directory, 'wb') as f:
+        pickle.dump(data,f)
+    print(f"Pickle file saved in {directory}")
+    
+def retrieve_pickle(name_data):
+    """ Return the data that is in a pickle file in {loc.OUT}/pickle/
+    @name_data :: str, name of the pickle file
+    
+    @returns   :: data saved in the pickle file named {name_data}.pickle
+    """
+    with open(f'{loc.OUT}/pickle/{name_data}.pickle','br') as file:
+        data = pickle.load(file)
+    return data
+    
 def load_data(years=None, magnets=None, type_data='data', vars=None, method='read_root', 
               name_BDT='adaboost_0.8_without_P_cutDeltaM', cut_DeltaM=False, cut_PIDK=None):
     """ return the pandas dataframe with the desired data
@@ -517,7 +550,7 @@ def show_grid(ax, which='major'):
     ax.grid(b=True, which=which, color='#666666', linestyle='-', alpha = 0.5)
 
 def plot_hist_alone(ax, data, n_bins, low, high, color, mode_hist, alpha = 1, 
-                    density = False, label = None, label_ncounts = False):
+                    density = False, label = None, label_ncounts = False, weights=None):
     ''' 
     Plot histogram
     - If mode_hist: Points with error
@@ -533,6 +566,7 @@ def plot_hist_alone(ax, data, n_bins, low, high, color, mode_hist, alpha = 1,
     @density       :: if True, divide the numbers of counts in the histogram by the total number of counts
     @label         :: label of the histogram
     @label_ncounts :: if True, show the number of counts in the histogram
+    @weights       :: Weights of each element in data
     
     @returns:
             - counts  : counts in every bin
@@ -540,7 +574,7 @@ def plot_hist_alone(ax, data, n_bins, low, high, color, mode_hist, alpha = 1,
             - centres : centres of the bins
             - err     : Poisson uncertainty on the counts
     '''
-    counts,edges = np.histogram(data, range = (low,high), bins=n_bins)
+    counts,edges = np.histogram(data, range = (low,high), bins=n_bins, weights=weights)
     centres = (edges[:-1] + edges[1:])/2.    
     n_candidates = counts.sum()
     err = np.sqrt(counts)
@@ -692,7 +726,25 @@ def add_text(text1,text2, sep = ' ', default=None):
         return text1
     else:
         return text1 + sep + text2
+
+def fix_plot(ax, ymax=1.1, show_leg=True, fontsize_ticks=20., fontsize_leg=20.):
+    """ Some fixing of the parameters (fontsize, ymax, legend)
+    @ax              :: axis where to plot
+    @ymax            :: float, multiplicative factor of ymax
+    @show_leg        :: Bool, True if show legend
+    @fontsize_ticks  :: float, fontsize of the ticks
+    @fontsize_leg    :: fontsize of the legend
+    """
     
+    if ymax is not None:
+        change_ymax(ax,ymax)
+    
+    set_label_ticks(ax)
+    if show_leg:
+        plt.legend(fontsize = fontsize_leg)
+    
+    
+
 #################################################################################################
 ################################# Main plotting function ########################################
 ################################################################################################# 
@@ -700,7 +752,7 @@ def add_text(text1,text2, sep = ' ', default=None):
 def plot_hist(dfs, variable, name_variable=None, unit_variable=None, n_bins=100, mode_hist=False, 
               low=None, high=None, density=None, 
               title=None, name_data_title=False,  
-              name_file=None,name_folder=None,colors=None):
+              name_file=None,name_folder=None,colors=None, weights=None):
     """ Save the histogram(s) of variable of the data given in dfs
     
     @dfs             :: Dictionnary {name of the dataframe : pandas dataframe, ...}
@@ -751,22 +803,13 @@ def plot_hist(dfs, variable, name_variable=None, unit_variable=None, n_bins=100,
     for name_data, df in dfs.items():
         alpha = 0.5 if density else 1
         _,_,_,_ = plot_hist_alone(ax, df[variable], n_bins, low, high, colors[k_col], mode_hist, alpha = alpha, 
-                        density = density, label = name_data, label_ncounts = True)
+                        density = density, label = name_data, label_ncounts = True, weights=weights)
         k_col += 1
               
               
     #Some plot style stuff
     set_label_hist(ax, name_variable, unit_variable, bin_width, density=density, fontsize=25)
-    
-    #Get the default y-limits, then redefine the plot to start at 0 and give it a bit more space on top (with the 1.4x)
-    change_ymax(ax,1+0.1*len(name_datas))
-
-    #Set the font size of the axis numbers
-    set_label_ticks(ax)
-
-    #Legend
-    if density:
-        plt.legend(fontsize = 20)
+    fix_plot(ax, ymax=1+0.1*len(name_datas), show_leg=density)
     
     #Remove any space not needed around the plot
     plt.tight_layout()

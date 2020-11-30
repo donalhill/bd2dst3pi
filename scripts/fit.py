@@ -256,7 +256,7 @@ def plot_fitted_curves(ax, models, plot_scaling, low, high, name_models=None, ty
         ax.legend(fontsize=fontsize_legend, loc=loc_leg)
    
         
-def plot_result_fit(ax, params, name_params=None, fontsize=20, colWidths=[0.04,0.01,0.08,0.06], loc='upper right'):
+def plot_result_fit(ax, params, name_params=None, fontsize=20, colWidths=[0.06,0.01,0.05,0.06], loc='upper right'):
     """
     Plot fitted the results of the fit in a table
     
@@ -404,7 +404,8 @@ def plot_hist_fit(df, variable, name_var=None, unit_var=None,models=None, obs=No
                   mode_hist=True, linewidth=2.5, colors=None,
                   name_data_title=False, title=None, fontsize_leg=20,
                   name_file=None,name_folder=None,name_data=None, show_chi2=False,
-                  params=None,name_params=None, colWidths=[0.04,0.01,0.06,0.06], loc_res='upper right', loc_leg='upper left'):
+                  params=None,name_params=None, colWidths=[0.04,0.01,0.06,0.06], loc_res='upper right', loc_leg='upper left',
+                  weights=None):
     """ Plot complete histogram with fitted curve, pull histogram and results of the fits, save it in plots/
     @df            :: pandas dataframe that contains all the variables, including 'variable'
     @variable      :: name of the variable to plot and fit
@@ -454,7 +455,7 @@ def plot_hist_fit(df, variable, name_var=None, unit_var=None,models=None, obs=No
     ## plot 1D histogram of data
     # Histogram 
     counts,_,centres,err = fct.plot_hist_alone(ax[0], df[variable], n_bins,
-                                               low, high, color, mode_hist, alpha = 0.1)
+                                               low, high, color, mode_hist, alpha = 0.1, weights=weights)
     
     
     # Label
