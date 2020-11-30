@@ -23,6 +23,16 @@ variables_params = {
         'name': "$\Delta z$ significance",
         'unit': None
     },
+    'flight':
+    {
+        'name': "$\Delta z$",
+        'unit': "$\mu m$"
+    },
+    'flight':
+    {
+        'name': "flight distance",
+        'unit': '$\mu$m'
+    },
     'ENDVERTEX_CHI2':
     {
         'name': None,

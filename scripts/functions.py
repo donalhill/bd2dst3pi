@@ -66,7 +66,7 @@ def apply_cut_DeltaM(df):
     df["Delta_M"] = df["Dst_M"] - df["D0_M"]
     df = df.query("Delta_M > 143. and Delta_M < 148.")
     n_cut_events = len(df)
-    print(f"cut on PIDs have removed {n_events - n_cut_events} over {n_events} events")
+    print(f"cut on DeltaM has removed {n_events - n_cut_events} over {n_events} events")
     return df
 
 def apply_cut_PIDK(df, cut=4):
@@ -205,7 +205,7 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
                         '{loc.OUT}/tmp/BDT_{name_BDT}.root'
     @cut_deltaM :: if true (or if BDT is in vars), perform a cut on DeltaM
                         143 < DeltaM < 148
-    @cut_PID    :: if 'PID', cut out the events with tau_pion_ID < 4 if tau_pion and Dst_PID has an opposite charge
+    @cut_PIDK   :: if 'PID', cut out the events with tau_pion_ID < 4 if tau_pion and Dst_PID has an opposite charge
                    if 'ALL', cut out all the events with tau_pion_ID < 4
     
     @returns    :: df with the desired variables for all specified the years and magnets
@@ -323,7 +323,6 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
                 complete_path = f"{path}_{y}_{m}{ext}"
                 dfr[f"{y}_{m}"] = load_dataframe(complete_path, tree_name, vars, method=method)
                 dfr_tot = dfr_tot.append(dfr[f"{y}_{m}"])
-        
         if cut_DeltaM:
             print('cut on Delta_M')
             dfr_tot = apply_cut_DeltaM(dfr_tot)
@@ -936,8 +935,8 @@ def plot_hist2d(df, variables, name_variables, unit_variables, n_bins = 100,
     ## Label, color bar
     set_label_ticks(ax)
     set_label_2Dhist(ax, name_variables, unit_variables, fontsize=25)
-    plt.colorbar(h)
-    
+    cbar = plt.colorbar(h)
+    cbar.ax.tick_params(labelsize=20)
     
     ## Save the data
     directory = f"{loc.PLOTS}/"
@@ -997,19 +996,27 @@ def get_name_unit_particule_var(variable):
                     - str, unit of the variable (for instance, 'MeV/$c^2$')
     """
     particle, var = retrieve_particle_variable(variable)
-    name_particle = particle_names[particle]
-    if var in variables_params:
-        name_var = variables_params[var]['name']
-        unit_var = variables_params[var]['unit']
+    if particle is not None and var is not None:
+        if particle in particle_names:
+            name_particle = particle_names[particle]
+        else:
+            name_particle = None
+        if var in variables_params:
+            name_var = variables_params[var]['name']
+            unit_var = variables_params[var]['unit']
+        else:
+            name_var = None
+            unit_var = None
+
+        if name_var is None:
+            name_var = latex_format(var)
+        if name_particle is None:
+            name_variable = var
+        else:
+            name_variable = f"{name_var}({name_particle})"
     else:
-        name_var = None
+        name_variable = variable
         unit_var = None
-    
-    if name_var is None:
-        name_variable = f"{latex_format(var)}({name_particle})"
-    else:
-        name_variable = f"{name_var}({name_particle})"
-        
     return name_variable, unit_var 
 
 def get_name_file_title_BDT(name_file, title, cut_BDT, variable, name_data):
