@@ -208,7 +208,7 @@ def number_events_model(models):
         n_tot = 0
         for sub_model in model.models:
             assert sub_model.is_extended
-            n_tot += float(sub_model.get_yield())
+            n_tot += float(sub_model.get_yield().value())
         return n_tot, mode_frac
 
         
@@ -276,7 +276,7 @@ def plot_models(ax, x, models, plot_scaling, type_models, name_models=None,
                 #frac_or_ntot is ntot
                 if k>=1:
                     main_model = get_element_list(model,0,if_not_list='el')
-                    applied_frac = frac * float(main_model.get_yield()) / frac_or_ntot
+                    applied_frac = frac * float(main_model.get_yield().value()) / frac_or_ntot
             # labels
             if len(type_models)>1:
                 type_model = type_models[k]
@@ -504,7 +504,7 @@ def launch_fit(model, data, extended = False):
 ###################################### Plotting function ########################################
 #################################################################################################   
     
-def plot_hist_fit(df, variable, name_var=None, unit_var=None,models=None, obs=None, n_bins=50, color='black', 
+def plot_hist_fit (df, variable, name_var=None, unit_var=None,models=None, obs=None, n_bins=50, color='black', 
                   name_models=None, type_models=None,
                   mode_hist=True, linewidth=2.5, colors=None,
                   name_data_title=False, title=None, fontsize_leg=20,

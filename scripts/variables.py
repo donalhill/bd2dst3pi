@@ -52,7 +52,7 @@ variables_params = {
 }
 
 particle_names = {
-    'B0':'$D^{*-}3\pi$',
+    'B0':'$D^{*}3\pi$',
     'Dst':'$D^*$',
     'tau':'$3\pi$',
     'tau_pion0':'$\pi_0$',
