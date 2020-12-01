@@ -69,6 +69,23 @@ def apply_cut_DeltaM(df):
     print(f"cut on DeltaM has removed {n_events - n_cut_events} over {n_events} events")
     return df
 
+def apply_cut_tau_Ds(df, mean=1969., size=50):
+    """Cut on df:  abs(tau_M-{mean})<={size}
+    
+    @df      :: pandas dataframe with the variable tau_M
+    @mean    :: float
+    @size    :: float
+    @returns :: df cut on tau_M
+    """
+    assert 'tau_M' in df
+    
+    n_events = len(df)
+    df = df.query(f"abs(tau_M-{mean})<={size}")
+    n_cut_events = len(df)
+    print(f"cut on tau_M has removed {n_events - n_cut_events} over {n_events} events")
+    return df
+
+
 def apply_cut_PIDK(df, cut=4):
     """
     Cut out the events = tau_pion_ID > {cut} if tau_pion and Dst_PID has an opposite charge
@@ -190,7 +207,8 @@ def retrieve_pickle(name_data):
     return data
     
 def load_data(years=None, magnets=None, type_data='data', vars=None, method='read_root', 
-              name_BDT='adaboost_0.8_without_P_cutDeltaM', cut_DeltaM=False, cut_PIDK=None):
+              name_BDT='adaboost_0.8_without_P_cutDeltaM', cut_DeltaM=False, cut_PIDK=None,
+             cut_tau_Ds=False):
     """ return the pandas dataframe with the desired data
     
     @years      :: list of the wanted years
@@ -215,7 +233,9 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
     retrieve_saved = False
     if 'BDT' in vars:
         cut_DeltaM = True
-
+    if 'sWeight' in vars:
+        cut_tau_Ds = True
+        
     tree_name = "DecayTree"
     # MC data -------------------------------------------
     if type_data == 'MC':
@@ -238,11 +258,20 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
     
     # new data strip ------------------------------------
     elif type_data == 'data_strip':
+        variables_saved = ['B0_M','tau_M', 'BDT', 'sWeight']
+        
+        
         if list_included(vars, ['B0_M', 'tau_M', 'BDT']) and cut_DeltaM and magnets == all_magnets and years == all_years and cut_PIDK==None and name_BDT == 'adaboost_0.8_without_P_cutDeltaM' : 
             only_one_file = True
             retrieve_saved = True
             complete_path = f"{loc.OUT}root/data_strip/all_data_strip.root"
             tree_name = 'DecayTreeTuple/DecayTree'
+        elif list_included(vars, variables_saved) and cut_DeltaM and magnets == all_magnets and years == all_years and cut_PIDK==None and name_BDT == 'adaboost_0.8_without_P_cutDeltaM':
+            only_one_file = True
+            retrieve_saved = True
+            complete_path = f"{loc.OUT}root/data_strip/data_strip_B0toDstDs.root"
+            tree_name = 'DecayTree'
+            
         else:
             path = f"{loc.DATA_STRIP}/data_90000000"
             ext = '.root'
@@ -294,12 +323,12 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
     else:
         print("Possible type of data: 'MC', 'data', 'data_strip', 'ws_strip', 'data_KPiPi")
     
-    mode_BDT = (isinstance(vars,list) and  ('BDT' in vars)) or ('BDT' == vars)
+    mode_BDT = ('BDT' in vars)
+    mode_sWeight = ('sWeight' in vars)
     
     if not retrieve_saved:
         if mode_BDT:
             vars.remove('BDT')
-
         if cut_DeltaM:
             vars.append('Dst_M')
             vars.append('D0_M')
@@ -310,7 +339,9 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
                     'Dst_ID']
         elif cut_PIDK == 'ALL':
             vars += ['tau_pion0_PIDK', 'tau_pion1_PIDK', 'tau_pion2_PIDK']
-        
+        if mode_sWeight:
+            vars.remove('sWeight')
+            
     dfr = {}
     dfr_tot = pd.DataFrame()
     
@@ -324,17 +355,24 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
                 dfr[f"{y}_{m}"] = load_dataframe(complete_path, tree_name, vars, method=method)
                 dfr_tot = dfr_tot.append(dfr[f"{y}_{m}"])
         if cut_DeltaM:
-            print('cut on Delta_M')
+            #print('cut on Delta_M')
             dfr_tot = apply_cut_DeltaM(dfr_tot)
-        if mode_BDT:
-            dfr_tot['BDT'] = read_root(loc.OUT+f'tmp/{type_data}/BDT_{name_BDT}.root', 'BDT', columns=['BDT'])
+        
         if cut_PIDK == 'PID': # NB: cut the PID after adding the BDT branch :)
-            print('cut on PIDK')
+            #print('cut on PIDK')
             dfr_tot = apply_cut_PIDK(dfr_tot)
         elif cut_PIDK == 'ALL':
-            print('cut on all PIDK')
+            #print('cut on all PIDK')
             dfr_tot = apply_cut_allPIDK(dfr_tot)
-     
+        
+        if cut_tau_Ds:
+            dfr_tot = apply_cut_tau_Ds(dfr_tot)
+        
+        if mode_BDT:
+            dfr_tot['BDT'] = read_root(loc.OUT+f'tmp/{type_data}/BDT_{name_BDT}.root', 'BDT', columns=['BDT'])
+        if mode_sWeight: 
+            dfr_tot = dfr_tot.reset_index()
+            dfr_tot['sWeight'] = read_root(loc.OUT+f'root/{type_data}/data_strip_B0toDstDs_sWeights.root', 'sWeights', columns=['sig'])
     return dfr_tot
 
 
