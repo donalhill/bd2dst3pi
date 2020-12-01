@@ -509,7 +509,8 @@ def plot_hist_fit(df, variable, name_var=None, unit_var=None,models=None, obs=No
                   mode_hist=True, linewidth=2.5, colors=None,
                   name_data_title=False, title=None, fontsize_leg=20,
                   name_file=None,name_folder=None,name_data=None, show_chi2=False,
-                  params=None,name_params=None, colWidths=[0.04,0.01,0.06,0.06], loc_res='upper right', loc_leg='upper left',
+                  params=None,name_params=None, colWidths=[0.04,0.01,0.06,0.06], fontsize_res=20.,
+                  loc_res='upper right', loc_leg='upper left',
                   weights=None):
     """ Plot complete histogram with fitted curve, pull histogram and results of the fits, save it in plots/
     @df            :: pandas dataframe that contains all the variables, including 'variable'
@@ -589,7 +590,7 @@ def plot_hist_fit(df, variable, name_var=None, unit_var=None,models=None, obs=No
     
     ## Plot the fitted parameters of the fit
     if params is not None:
-        plot_result_fit(ax[0], params, name_params=name_params, fontsize=20, colWidths=colWidths, loc=loc_res)
+        plot_result_fit(ax[0], params, name_params=name_params, fontsize=fontsize_res, colWidths=colWidths, loc=loc_res)
     
     # Save result
     plt.tight_layout()
