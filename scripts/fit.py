@@ -24,6 +24,8 @@ rc('text', usetex=True)
 rcParams['axes.unicode_minus'] = False
 
 
+composedParameter = zfit.core.parameter.ComposedParameter
+simpleParameter = zfit.core.parameter.Parameter
 
 #################################################################################################
 ######################################## Tools functions ########################################
@@ -34,16 +36,16 @@ def get_plot_scaling(counts, obs, n_bins):
     """Return plot_scaling, the factor to scale the curve fit to unormalised histogram"""
     return counts.sum() * obs.area() / n_bins 
     
-def get_frac_model(model, n_tot):
-    ''' Return the yield of the PDF of model, relatively to the total PDF
+# def get_frac_model(model, n_tot):
+#     ''' Return the yield of the PDF of model, relatively to the total PDF
     
-    @model   :: extended zfit model
-    @n_tot   :: total number of events (or yield of the total pdf)
+#     @model   :: extended zfit model
+#     @n_tot   :: total number of events (or yield of the total pdf)
     
-    @return  :: number_element_model / n_tot
-    '''
+#     @return  :: number_element_model / n_tot
+#     '''
     
-    return model.get_yield()/n_tot
+#     return model.get_yield()/n_tot
 
 def frac_model(x, model, frac=None):
     """ 
@@ -61,6 +63,7 @@ def frac_model(x, model, frac=None):
     if frac is None:
         return model.pdf(x).numpy()
     else:
+
         return (model.pdf(x)*frac).numpy()
 
 def el_or_list_to_group(l, type_el=np.ndarray):
@@ -146,7 +149,7 @@ def plot_pull_diagram(ax, model, counts, centres, err, low=None, high=None,
         ax.set_title(f'($\\chi^2$={chi2:.2f})', fontsize=fontsize)
     
 def plot_fitted_curve(ax, model, plot_scaling, frac=None, line_width=2.5,
-                      color='b',linestyle='-', low=None, high=None, label=None, x=None):
+                      color='b',linestyle='-', low=None, high=None, label=None, x=None, alpha=1):
     """
     Plot fitted curve given by 'model'
     
@@ -162,7 +165,7 @@ def plot_fitted_curve(ax, model, plot_scaling, frac=None, line_width=2.5,
     if x is None:
         x = np.linspace(low, high, 1000)
     y = frac_model(x, model, frac=frac)* plot_scaling
-    ax.plot(x, y, linewidth=line_width, color=color, ls=linestyle, label=label)
+    ax.plot(x, y, linewidth=line_width, color=color, ls=linestyle, label=label, alpha=alpha)
 
 
 # Alternative names for the models
@@ -173,10 +176,153 @@ name_PDF = {
     'Gauss' : 'Gaussian',
     'CrystalBall': 'Crystal Ball'
 }
+
+def number_events_model(models):
+    """ return the frac or the total number of events in the model
+    @models  :: list of zFit models, whose first element is the sum of the others, weighted by frac or by extended models.
     
+    @returns  ::
+        - If frac, is used, it directly returns frac
+        - Else, it returns the number of events in the model
     
-def plot_fitted_curves(ax, models, plot_scaling, low, high, name_models=None, type_models=None, frac=None,
-                       line_width=2.5, colors=None, fontsize_legend=16, loc_leg='upper left'):
+    NB: this functions assumes that there is only 1 frac (I don't need more that 1 fracs yet)
+    """
+    
+    model=models[0]
+    assert isinstance(model, zfit.models.functor.SumPDF)
+
+    mode_frac = False
+    parameters = list(model.params.values())
+    i = 0
+    while not mode_frac and i<len(parameters):
+        # if one of the parameter is not a composedParameter, this it is a frac parameter
+        mode_frac = not isinstance(parameters[i],composedParameter)
+        if mode_frac:
+            assert isinstance(parameters[i], simpleParameter)
+        i+= 1
+    if mode_frac:
+        # parameters[i-1] is a simpleParameter, i.e., frac
+        frac = float(parameters[i-1])
+        return frac, mode_frac
+    else:
+        n_tot = 0
+        for sub_model in model.models:
+            assert sub_model.is_extended
+            n_tot += float(sub_model.get_yield())
+        return n_tot, mode_frac
+
+        
+name_type_models = {
+    'm' : 'model',
+    's' : 'signal',
+    'b' : 'background'
+}
+
+def get_name_model(model):
+    """ return the name of the model
+    @model  :: zfit PDF
+    
+    @returns :: name of the model (specified by the dictionnary name_PDF)
+    """
+    # get the name of the model, removing  '_extended' when the PDF is extended
+    marker = model.name.find('_') 
+    if marker == -1:
+        marker = None
+    label_model = name_PDF[model.name[:marker]]
+    
+    return label_model
+
+def get_element_list(liste_candidate, index, if_not_list=None):
+    """ return an element of list, but process the case where liste is not a list
+    @liste       :: python element
+    @index       :: integer
+    @if_not_list :: returned element if liste is not a list:
+            if_not_list=None  : return None
+            if_not_list='el' : return the liste_candidate
+    @results: if liste is a liste, return liste_candidate[index], 
+                else return according to what is specified is if_not_list
+    """
+    if isinstance(liste_candidate, list):
+        return liste_candidate[index]
+    else:
+        if if_not_list is None:
+            return None
+        elif if_not_list == "el":
+            return liste_candidate
+
+def plot_models(ax, x, models, plot_scaling, type_models, name_models=None, 
+                frac=1., l=0, colors=['b', 'g', 'gold', 'magenta', 'orange'], 
+                linestyles=['-', '--', ':', '-.'], line_width=2.5):
+    """ Recursive function
+    @l           :: =0 is first sumPDF, 1 if component of this sumPDF, 2 if component of a sumPDF component of sumPDF
+    """             
+    
+    if isinstance(models, list):
+        frac_or_ntot, mode_frac = number_events_model(models)
+        if mode_frac:
+            assert len(models)==3
+            
+        for k, model in enumerate(models):
+            if k==1:
+                l+=1
+            # Compute frac
+            applied_frac = frac
+            if mode_frac:
+                if k == 1:
+                    applied_frac = frac * frac_or_ntot
+                elif k == 2 :
+                    applied_frac = frac * (1 - frac_or_ntot)
+            else:
+                #frac_or_ntot is ntot
+                if k>=1:
+                    main_model = get_element_list(model,0,if_not_list='el')
+                    applied_frac = frac * float(main_model.get_yield()) / frac_or_ntot
+            # labels
+            if len(type_models)>1:
+                type_model = type_models[k]
+            else:
+                type_model = type_models
+ 
+            color = get_element_list(colors, k, if_not_list='el')
+            if not isinstance(name_models,list): 
+                # if the name of the subsubmodel is not specified, put it to None
+                if k==0:
+                    name_model = name_models
+                else:
+                    name_model = None
+            else:
+                name_model = name_models[k]
+            
+
+            plot_models(ax, x, model, plot_scaling, type_model, name_model, applied_frac, l, color, 
+                        linestyles, line_width)
+    
+    else:
+        model = get_element_list(models,0,if_not_list='el')
+        assert not isinstance(model,list)
+        
+
+        # Label
+        if name_models is not None:
+            label_model = get_name_model(model)
+            label_model += f' - {name_type_models[type_models]}'
+            label_model = fct.add_text(label_model, name_models)
+        else:
+            label_model=None
+        if l>=2:
+            alpha = 0.5
+        else:
+            alpha = 1
+
+        plot_fitted_curve(ax, model, plot_scaling, frac=frac, line_width=line_width, color=colors, 
+                          linestyle = linestyles[l], label=label_model, x=x, alpha=alpha)
+        
+        
+    
+
+def plot_fitted_curves(ax, models, plot_scaling, low, high, name_models=None, type_models=None,
+                       line_width=2.5, colors=['b', 'g', 'gold', 'magenta', 'orange'], 
+                       fontsize_legend=16, loc_leg='upper left'):
     """
     Plot fitted curve given by 'models', with labels given by name_models
     
@@ -196,21 +342,10 @@ def plot_fitted_curves(ax, models, plot_scaling, low, high, name_models=None, ty
     @fontsize      :: fontsize of the legend
     """
     models = fct.el_to_list(models, 1)
-    show_legend = len(models) > 1
+    show_legend = name_models is not None
     name_models = fct.el_to_list(name_models, len(models))
 
-    if colors is None:
-        colors = ['b', 'g', 'gold', 'magenta', 'orange']
-        
     x = np.linspace(low, high, 1000)
-    
-    # Get the total number of events in the models
-    if len(models) > 1:
-        model = models[0] # total PDF
-        if frac is None:
-            n_tot = 0
-            for yield_model in model.get_yield().params.values():
-                n_tot += float(yield_model.value())
     
     # Plot the models
     if type_models is None:
@@ -218,44 +353,14 @@ def plot_fitted_curves(ax, models, plot_scaling, low, high, name_models=None, ty
         if len(name_models) >= 2:
             type_models += 's'
             type_models += 'b'*(len(name_models)-2)
+
+    plot_models(ax, x, models, plot_scaling, type_models, name_models=name_models, colors=colors, line_width=2.5)
     
-    name_type_models = {
-        'm' : 'model',
-        's' : 'signal',
-        'b' : 'background'
-    }
-    
-    for k, model in enumerate(models):
-        marker = model.name.find('_') 
-        if marker == -1:
-            marker = None
-        label_model = name_PDF[model.name[:marker]]
-        if k != 0:
-            
-            if frac is None:
-                applied_frac = get_frac_model(model, n_tot)
-            elif k == 1:
-                applied_frac = frac
-            elif k == 2 :
-                applied_frac = 1 - frac
-            
-            ls = '--'
-            
-        else: # k = 0 is the total PDF
-            applied_frac = None
-            ls ='-'
-        
-        label_model += f' - {name_type_models[type_models[k]]}'
-            
-            
-        label_model = fct.add_text(label_model, name_models[k])
-        plot_fitted_curve(ax, model, plot_scaling, frac=applied_frac, line_width=2.5, color=colors[k], 
-                          linestyle = ls, label=label_model, x=x)
+
     
     if show_legend:
         ax.legend(fontsize=fontsize_legend, loc=loc_leg)
-   
-        
+
 def plot_result_fit(ax, params, name_params=None, fontsize=20, colWidths=[0.06,0.01,0.05,0.06], loc='upper right'):
     """
     Plot fitted the results of the fit in a table
@@ -400,7 +505,7 @@ def launch_fit(model, data, extended = False):
 #################################################################################################   
     
 def plot_hist_fit(df, variable, name_var=None, unit_var=None,models=None, obs=None, n_bins=50, color='black', 
-                  name_models=None, type_models=None, frac=None,
+                  name_models=None, type_models=None,
                   mode_hist=True, linewidth=2.5, colors=None,
                   name_data_title=False, title=None, fontsize_leg=20,
                   name_file=None,name_folder=None,name_data=None, show_chi2=False,
@@ -434,7 +539,6 @@ def plot_hist_fit(df, variable, name_var=None, unit_var=None,models=None, obs=No
                         Also indicated the variables to plot among all the variables in params
     @colWidths     :: Width of the four columns of the table
     """
-    
     ## Create figure
     fig = plt.figure(figsize=(12,10))
     gs = gridspec.GridSpec(2,1,height_ratios=[3,1])
@@ -462,8 +566,6 @@ def plot_hist_fit(df, variable, name_var=None, unit_var=None,models=None, obs=No
     bin_width = fct.get_bin_width(low, high, n_bins)
     fct.set_label_hist(ax[0], name_var, unit_var, bin_width, fontsize=25)
     
-    
-    
     # Ticks
     fct.set_label_ticks(ax[0])
     
@@ -472,11 +574,11 @@ def plot_hist_fit(df, variable, name_var=None, unit_var=None,models=None, obs=No
         model = models[0] # the first model is the "global" one
     else:
         model = models
+    
         
     plot_scaling = get_plot_scaling(counts, obs, n_bins)
-    #plot_fitted_curve(ax[0], model, plot_scaling, low, high)
     plot_fitted_curves(ax[0], models, plot_scaling, low, high, name_models=name_models, type_models=type_models,
-                       line_width=2.5, colors=colors, fontsize_legend=fontsize_leg, loc_leg=loc_leg, frac=frac)
+                       line_width=2.5, colors=colors, fontsize_legend=fontsize_leg, loc_leg=loc_leg)
     
     fct.change_ymax(ax[0], factor=1.1)
     
@@ -494,7 +596,6 @@ def plot_hist_fit(df, variable, name_var=None, unit_var=None,models=None, obs=No
     plt.show()  
     directory = f"{loc.PLOTS}/"    
     fct.save_file(fig, name_file,name_folder,f'{variable}_{name_data}_fit',f"{loc.PLOTS}/")
-
 
 
 def plot_x_list_ys(x, y, name_x, names_y, surnames_y=None, linewidth=2.5,fontsize=25, name_file=None, name_folder=None):

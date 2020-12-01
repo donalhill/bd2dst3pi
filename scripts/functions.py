@@ -249,35 +249,35 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
             tree_name = "DecayTreeTuple/DecayTree"
         
     # Previous data strip -------------------------------
-#     elif type_data == 'data_strip_p':
-#         saved_variables_PIDK = ['B0_M', 'tau_M', 'BDT',
-#                            'tau_pion0_ID', 'tau_pion1_ID', 'tau_pion2_ID','Dst_ID',
-#                            'tau_pion0_PIDK', 'tau_pion1_PIDK', 'tau_pion2_PIDK']
-#         saved_variables_allPIDK = ['B0_M', 'tau_M', 'BDT', 
-#                                    'tau_pion0_PIDK', 'tau_pion1_PIDK', 'tau_pion2_PIDK']
+    elif type_data == 'data_strip_p':
+        saved_variables_PIDK = ['B0_M', 'tau_M', 'BDT',
+                           'tau_pion0_ID', 'tau_pion1_ID', 'tau_pion2_ID','Dst_ID',
+                           'tau_pion0_PIDK', 'tau_pion1_PIDK', 'tau_pion2_PIDK']
+        saved_variables_allPIDK = ['B0_M', 'tau_M', 'BDT', 
+                                   'tau_pion0_PIDK', 'tau_pion1_PIDK', 'tau_pion2_PIDK']
         
-#         if list_included(vars, ['B0_M','tau_M']) and magnets == all_magnets and years == all_years and cut_PIDK==None and cut_DeltaM:
-#             only_one_file = True
-#             retrieve_saved = True
-#             complete_path = f"{loc.OUT}root/data_strip_p/all_data_strip.root"
-#             tree_name = 'all_data_strip_cutDeltaM'
+        if list_included(vars, ['B0_M','tau_M']) and magnets == all_magnets and years == all_years and cut_PIDK==None and cut_DeltaM:
+            only_one_file = True
+            retrieve_saved = True
+            complete_path = f"{loc.OUT}root/data_strip_p/all_data_strip.root"
+            tree_name = 'all_data_strip_cutDeltaM'
             
-#         elif list_included(vars, saved_variables_PIDK) and magnets == all_magnets and years == all_years and cut_PIDK=='PID' and cut_DeltaM:
-#             only_one_file = True
-#             retrieve_saved = True
-#             complete_path = f"{loc.OUT}root/data_strip_p/data_strip.root"
-#             tree_name = 'data_strip_cutDeltaM_cutPID'
+        elif list_included(vars, saved_variables_PIDK) and magnets == all_magnets and years == all_years and cut_PIDK=='PID' and cut_DeltaM:
+            only_one_file = True
+            retrieve_saved = True
+            complete_path = f"{loc.OUT}root/data_strip_p/data_strip.root"
+            tree_name = 'data_strip_cutDeltaM_cutPID'
             
-#         elif list_included(vars, saved_variables_allPIDK) and magnets == all_magnets and years == all_years and cut_PIDK=='ALL' and cut_DeltaM:
-#             only_one_file = True
-#             retrieve_saved = True
-#             complete_path = f"{loc.OUT}root/data_strip_p/data_strip.root"
-#             tree_name = 'data_strip_cutDeltaM_cutallPIDK'
+        elif list_included(vars, saved_variables_allPIDK) and magnets == all_magnets and years == all_years and cut_PIDK=='ALL' and cut_DeltaM:
+            only_one_file = True
+            retrieve_saved = True
+            complete_path = f"{loc.OUT}root/data_strip_p/data_strip.root"
+            tree_name = 'data_strip_cutDeltaM_cutallPIDK'
             
-#         else:
-#             path = f"{loc.DATA_STRIP_p}/data_90000000"
-#             ext = '.root'
-#             tree_name = "DecayTreeTuple/DecayTree"
+        else:
+            path = f"{loc.DATA_STRIP_p}/data_90000000"
+            ext = '.root'
+            tree_name = "DecayTreeTuple/DecayTree"
     
     # wrong sign data strip -------------------------------------
     elif type_data == 'ws_strip':
