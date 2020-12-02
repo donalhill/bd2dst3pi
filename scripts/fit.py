@@ -256,33 +256,37 @@ def plot_models(ax, x, models, plot_scaling, type_models, name_models=None,
     """ Recursive function
     @l           :: =0 is first sumPDF, 1 if component of this sumPDF, 2 if component of a sumPDF component of sumPDF
     """             
-    
+        
     if isinstance(models, list):
-        frac_or_ntot, mode_frac = number_events_model(models)
+        if len(models)>1:
+            frac_or_ntot, mode_frac = number_events_model(models)
+        else:
+            mode_frac=None
         if mode_frac:
             assert len(models)==3
-            
+
         for k, model in enumerate(models):
             if k==1:
                 l+=1
             # Compute frac
             applied_frac = frac
-            if mode_frac:
-                if k == 1:
-                    applied_frac = frac * frac_or_ntot
-                elif k == 2 :
-                    applied_frac = frac * (1 - frac_or_ntot)
-            else:
-                #frac_or_ntot is ntot
-                if k>=1:
-                    main_model = get_element_list(model,0,if_not_list='el')
-                    applied_frac = frac * float(main_model.get_yield().value()) / frac_or_ntot
+            if mode_frac is not None:
+                if mode_frac:
+                    if k == 1:
+                        applied_frac = frac * frac_or_ntot
+                    elif k == 2 :
+                        applied_frac = frac * (1 - frac_or_ntot)
+                else:
+                    #frac_or_ntot is ntot
+                    if k>=1:
+                        main_model = get_element_list(model,0,if_not_list='el')
+                        applied_frac = frac * float(main_model.get_yield().value()) / frac_or_ntot
             # labels
             if len(type_models)>1:
                 type_model = type_models[k]
             else:
                 type_model = type_models
- 
+
             color = get_element_list(colors, k, if_not_list='el')
             if not isinstance(name_models,list): 
                 # if the name of the subsubmodel is not specified, put it to None
@@ -292,7 +296,7 @@ def plot_models(ax, x, models, plot_scaling, type_models, name_models=None,
                     name_model = None
             else:
                 name_model = name_models[k]
-            
+
 
             plot_models(ax, x, model, plot_scaling, type_model, name_model, applied_frac, l, color, 
                         linestyles, line_width)
@@ -447,7 +451,7 @@ def plot_xys (ax, x, ly, xlabel, labels=None, colors=['b','g','r','y'], fontsize
 ###################################### Fitting functions ########################################
 ################################################################################################# 
   
-def save_params(params,name_data,uncertainty=False):
+def save_params(params,name_data, uncertainty=False, dic_add=None):
     """ Save the parameters of the fit in {loc.JSON}/{name_data}_params.json
     
     @params        :: Result 'result.params' of the minimisation of the loss function
@@ -455,6 +459,8 @@ def save_params(params,name_data,uncertainty=False):
     @name_data     :: name of the data (used for the name of the file where the parameters
                         will be saved    
     @uncertainty   :: boolean, if True, save also the uncertainties
+    dic_add        :: dict, if not None, other parameter to save in the json file.
+    
     """
     param_results = {}
     for p in list(params.keys()): # loop through the parameters
@@ -465,6 +471,11 @@ def save_params(params,name_data,uncertainty=False):
         if uncertainty:
             error_param = params[p]['minuit_hesse']['error']
             param_results[name_param+'_err'] = error_param
+    
+    if dic_add is not None:
+        for key, value in dic_add.items():
+            param_results[key] = value
+            
     with open(f"{loc.JSON}/{name_data}_params.json",'w') as f:
         json.dump(param_results, f, sort_keys = True, indent = 4)
     print(f"parameters saved in {loc.JSON}/{name_data}_params.json")
@@ -599,7 +610,8 @@ def plot_hist_fit (df, variable, name_var=None, unit_var=None,models=None, obs=N
     fct.save_file(fig, name_file,name_folder,f'{variable}_{name_data}_fit',f"{loc.PLOTS}/")
 
 
-def plot_x_list_ys(x, y, name_x, names_y, surnames_y=None, linewidth=2.5,fontsize=25, name_file=None, name_folder=None):
+def plot_x_list_ys(x, y, name_x, names_y, surnames_y=None, linewidth=2.5,fontsize=25, name_file=None, name_folder=None,
+                  factor_ymax=1.):
     """ plot x as a function of the y of the list l_y
     
     @x          :: list or array of floats, points in the x-axis
@@ -627,8 +639,9 @@ def plot_x_list_ys(x, y, name_x, names_y, surnames_y=None, linewidth=2.5,fontsiz
             ax = axs
         else:
             ax = axs[k]
+        ly = np.array(ly)
         # In the same groups_ly, we plot the curves in the same plot
-        plot_xys (ax, x, groups_ly[k], xlabel=name_x, labels=groups_surnames_y[k], fontsize=fontsize,
+        plot_xys (ax, x, ly, xlabel=name_x, labels=groups_surnames_y[k], fontsize=fontsize,
              linewidth=linewidth)
     
         # Grid
@@ -637,7 +650,7 @@ def plot_x_list_ys(x, y, name_x, names_y, surnames_y=None, linewidth=2.5,fontsiz
         
         # Ticks
         fct.set_label_ticks(ax)
-        fct.change_ymax(ax, factor=1.1)
+        fct.change_ymax(ax, factor=factor_ymax, ymin_to0=False)
         
     
     plt.tight_layout()

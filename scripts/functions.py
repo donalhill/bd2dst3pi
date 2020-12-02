@@ -257,23 +257,23 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
         ext = '_Sim09e-ReDecay01.root'
     
     # new data strip ------------------------------------
-    elif type_data == 'data_strip':
+    elif type_data == 'common':
         variables_saved = ['B0_M','tau_M', 'BDT', 'sWeight']
         
         
         if list_included(vars, ['B0_M', 'tau_M', 'BDT']) and cut_DeltaM and magnets == all_magnets and years == all_years and cut_PIDK==None and name_BDT == 'adaboost_0.8_without_P_cutDeltaM' : 
             only_one_file = True
             retrieve_saved = True
-            complete_path = f"{loc.OUT}root/data_strip/all_data_strip.root"
+            complete_path = f"{loc.OUT}root/common/all_common.root"
             tree_name = 'DecayTreeTuple/DecayTree'
         elif list_included(vars, variables_saved) and cut_DeltaM and magnets == all_magnets and years == all_years and cut_PIDK==None and name_BDT == 'adaboost_0.8_without_P_cutDeltaM':
             only_one_file = True
             retrieve_saved = True
-            complete_path = f"{loc.OUT}root/data_strip/data_strip_B0toDstDs.root"
+            complete_path = f"{loc.OUT}root/common/common_B0toDstDs.root"
             tree_name = 'DecayTree'
             
         else:
-            path = f"{loc.DATA_STRIP}/data_90000000"
+            path = f"{loc.COMMON}/data_90000000"
             ext = '.root'
             tree_name = "DecayTreeTuple/DecayTree"
         
@@ -321,7 +321,7 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
         tree_name = 'DecayTree'
         
     else:
-        print("Possible type of data: 'MC', 'data', 'data_strip', 'ws_strip', 'data_KPiPi")
+        print("Possible type of data: 'MC', 'data', 'data_strip_p', 'common', 'ws_strip', 'data_KPiPi")
     
     mode_BDT = ('BDT' in vars)
     mode_sWeight = ('sWeight' in vars)
@@ -372,7 +372,7 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
             dfr_tot['BDT'] = read_root(loc.OUT+f'tmp/{type_data}/BDT_{name_BDT}.root', 'BDT', columns=['BDT'])
         if mode_sWeight: 
             dfr_tot = dfr_tot.reset_index()
-            dfr_tot['sWeight'] = read_root(loc.OUT+f'root/{type_data}/data_strip_B0toDstDs_sWeights.root', 'sWeights', columns=['sig'])
+            dfr_tot['sWeight'] = read_root(loc.OUT+f'root/{type_data}/common_B0toDstDs_sWeights.root', 'sWeights', columns=['sig'])
     return dfr_tot
 
 
@@ -566,12 +566,14 @@ def redefine_unit(unit, show_bracket = True):
 
 ## Parameters of the plot --------------------------------------------------------
 
-def change_ymax(ax, factor=1.1):
+def change_ymax(ax, factor=1.1, ymin_to0=True):
     """ multiple ymax of the plot by factor
     @factor    :: float
     """
     ymin, ymax = ax.get_ylim()
-    ax.set_ylim(0.,ymax*factor)
+    if ymin_to0:
+        ymin=0
+    ax.set_ylim(ymin,ymax*factor)
 
 #################################################################################################
 ################################ subfunctions for plotting ######################################
