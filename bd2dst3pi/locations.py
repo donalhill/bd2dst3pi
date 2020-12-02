@@ -20,7 +20,7 @@ loc.DATA = loc.EOS+'/norm/data'
 loc.MC = loc.EOS+'/norm/Bd_Dst3pi'
 #Location of data and MC with only some selection applied
 loc.DATA_STRIP_p = loc.EOS +'/stripped/data' # --> previous data
-loc.DATA_STRIP = loc.EOS+'/common/data'
+loc.COMMON = loc.EOS+'/common/data'
 
 loc.DATA_WS_STRIP = loc.EOS+'/stripped/dataWS'
 loc.MC_STRIP = loc.EOS+'/stripped/Bd_Dst3pi'
