@@ -31,6 +31,44 @@ simpleParameter = zfit.core.parameter.Parameter
 ######################################## Tools functions ########################################
 #################################################################################################
 
+def format_previous_params(df_params_recup):
+    """ Remove the element in the dictionnary that ends with '_err'.
+    For the other ones, removes what is after | in the keys.
+    In particular: variable|BDT-0.2 will become variable
+    
+    @df_params_recup  :: dataframe with the result of the file 
+                            this is the df saved in .json after the fit.
+                            
+    @returns          :: new dataframe
+    """
+    df_params_recup_formatted = {}
+    for key, value in df_params_recup.items():
+        if not key.endswith('_err'):
+            index = key.find('|')
+            df_params_recup_formatted[key[:index]] = value
+    
+    return df_params_recup_formatted
+
+def crystall_ball_gaussian(mu, sigma, obs, alpha=None, n=None):
+    if alpha is None or n is None:
+        pdf = zfit.pdf.Gauss(mu, sigma, obs=obs)
+    else:
+        pdf = zfit.pdf.CrystalBall(mu, sigma, alpha, n, obs=obs)
+    return pdf
+
+def sum_crystalball(muL, muR, sigmaL, sigmaR, frac, obs, alphaL=None, alphaR=None, nL=None, nR=None):
+    """ Return the sum of 2 crystall ball PDFs.
+    If the alpha or n is None, the corresponding distribution is a gaussian.
+    """
+    pdfL = crystall_ball_gaussian(muL, sigmaL, obs,
+                                         alphaL,nL)
+    pdfR = crystall_ball_gaussian(muR, sigmaR, obs,
+                                         alphaR, nR)
+    
+    model = zfit.pdf.SumPDF([pdfL, pdfR], fracs=frac)
+    
+    return model, pdfL, pdfR
+
 
 def get_plot_scaling(counts, obs, n_bins):
     """Return plot_scaling, the factor to scale the curve fit to unormalised histogram"""
@@ -411,9 +449,37 @@ def plot_result_fit(ax, params, name_params=None, fontsize=20, colWidths=[0.06,0
     table.set_fontsize(fontsize)
     table.scale(2, 2) 
 
+
+def add_value_labels(ax, lx, ly, labels, space_x=-10, space_y=5, labelsize=12, log_scale='both'):
+    """Add labels to the end of each bar in a bar chart.
+
+    Arguments:
+        ax (matplotlib.axes.Axes): The matplotlib object containing the axes
+            of the plot to annotate.
+        spacing (int): The distance between the labels and the bars.
     
-def plot_xys (ax, x, ly, xlabel, labels=None, colors=['b','g','r','y'], fontsize=25,
-             linewidth=2.5):
+    /!\ Retrieved from https://stackoverflow.com/questions/28931224/adding-value-labels-on-a-matplotlib-bar-chart
+
+    """
+    
+    assert len(lx)==len(ly)
+
+    # For each bar: Place a label
+    for x, y, label in zip(lx, ly, labels):
+        # Vertical alignment for positive values
+        ha = 'center'
+        va = 'center'       
+        if x!=0 and y!=0:    
+            ax.annotate(
+                label,          
+                (x, y), #xycoords='data',         
+                xytext=(space_x, space_y),          # Vertically shift label by `space`
+                textcoords='offset pixels', # Interpret `xytext` as offset in points
+                va=va, ha=ha,
+                size = labelsize)
+
+def plot_xys (ax, x, ly, xlabel, labels=None, colors=['b','g','r','y'], fontsize=25, annotations=None,
+             linewidth=2.5, linestyle='-', fontsize_annot=15., space_x=-15, space_y=5, markersize=1):
     """
     @ax        :: axis where to plot
     @x         :: list of float, points of the x-axis
@@ -431,12 +497,19 @@ def plot_xys (ax, x, ly, xlabel, labels=None, colors=['b','g','r','y'], fontsize
     
     for i, y in enumerate(ly):
         label = labels[i] if len(ly) > 1 else None
-        ax.errorbar(x, unumpy.nominal_values(y), yerr=unumpy.std_devs(y), linestyle='-', color=colors[i], 
+        x = np.array(x)
+        y = np.array(y)
+        x_n = unumpy.nominal_values(x)
+        y_n = unumpy.nominal_values(y)
+        ax.errorbar(x_n, y_n, 
+                    xerr = unumpy.std_devs(x), yerr=unumpy.std_devs(y), 
+                    linestyle=linestyle, color=colors[i], 
+                    markersize=markersize, elinewidth=markersize,
                     linewidth=linewidth, label=label, marker='.')
         
         if label is not None:
             plot_legend = True
-    
+        
     ax.set_xlabel(xlabel, fontsize=25)
     
     if len(ly)==1:
@@ -446,6 +519,10 @@ def plot_xys (ax, x, ly, xlabel, labels=None, colors=['b','g','r','y'], fontsize
     
     if plot_legend:
         ax.legend(fontsize=25)
+    
+    if annotations is not None:
+        assert len(ly)==1
+        add_value_labels(ax, x_n, y_n, annotations, labelsize=fontsize_annot, space_x=space_x, space_y=space_y)
     
 #################################################################################################
 ###################################### Fitting functions ########################################
@@ -609,41 +686,62 @@ def plot_hist_fit (df, variable, name_var=None, unit_var=None,models=None, obs=N
     directory = f"{loc.PLOTS}/"    
     fct.save_file(fig, name_file,name_folder,f'{variable}_{name_data}_fit',f"{loc.PLOTS}/")
 
-
-def plot_x_list_ys(x, y, name_x, names_y, surnames_y=None, linewidth=2.5,fontsize=25, name_file=None, name_folder=None,
-                  factor_ymax=1.):
+def set_log_scale(ax, axis='both'):
+    """Set label ticks to size given by labelsize"""
+    if axis == 'both' or axis == 'x':
+        ax.set_xscale('log')
+    if axis == 'both' or axis == 'y':
+        ax.set_yscale('log')
+    
+def plot_x_list_ys(x, y, name_x, names_y, surname_x=None, surnames_y=None, 
+                   annotations=None, markersize=1,
+                   linewidth=2.5,fontsize=25, name_file=None, name_folder=None,
+                   factor_ymax=1., linestyle='-', fontsize_annot=15.,
+                   space_x=-15, space_y=5, log_scale=None):
     """ plot x as a function of the y of the list l_y
     
     @x          :: list or array of floats, points in the x-axis
     @y          :: list of list of numpy arrays of ufloat, list of numpy arrays of ufloat, or one numpy array of ufloat
-    @name_y     :: list of str or str, name of each list in l_y
-    @surname_y  :: list of list of str, list of str or str, surname of each list in l_y
-    colors      :: list of list of str, list of str or str, colors of each graph in l_y
+    @name_x     :: str, name of the list used for the saving
+    @name_y     :: list of str or str, name of each list in l_y - use for the saved filename
+    @name_x     :: str or list of strs - use for the saved file name
+    @surname_y  :: list of list of str, list of str or str, surname of each list in l_y - use for the label
+    colors      :: list of list of str, list of str or str, colors of each graph in l_y 
     linewidth   :: float, linewdith
     name_file   :: str, name of the file to save
     name_folder :: str, name of the folder where the image is saved
     """
     
+    if surname_x is None:
+        surname_x = name_x
+            
     groups_ly         = el_or_list_to_group(y)
-    groups_names_y    = el_or_list_to_group(names_y,str)
+    groups_names_y    = el_or_list_to_group(names_y, str)
+    
+    
     
     if surnames_y is not None:
-        groups_surnames_y = el_or_list_to_group(surnames_y,str)
+        groups_surnames_y = el_or_list_to_group(surnames_y, str)
     else:
         groups_surnames_y = groups_names_y
-        
-    fig, axs = plt.subplots(len(groups_ly),1, figsize=(8,3*len(groups_ly)))
+    
+    
+    fig, axs = plt.subplots(len(groups_ly),1, figsize=(8,4*len(groups_ly)))
     
     for k, ly in enumerate(groups_ly):
         if len(groups_ly)==1:
             ax = axs
         else:
             ax = axs[k]
-        ly = np.array(ly)
+        
         # In the same groups_ly, we plot the curves in the same plot
-        plot_xys (ax, x, ly, xlabel=name_x, labels=groups_surnames_y[k], fontsize=fontsize,
-             linewidth=linewidth)
-    
+        plot_xys (ax, x, ly, xlabel=name_x, labels=groups_surnames_y[k], 
+                  annotations=annotations, markersize=markersize,
+                  fontsize=fontsize, linewidth=linewidth, linestyle=linestyle,
+                  fontsize_annot=fontsize_annot, space_x=space_x, space_y=space_y)
+        
+        set_log_scale(ax, axis=log_scale)
+        
         # Grid
         fct.show_grid(ax, which='major')
         fct.show_grid(ax, which='minor')
@@ -652,11 +750,12 @@ def plot_x_list_ys(x, y, name_x, names_y, surnames_y=None, linewidth=2.5,fontsiz
         fct.set_label_ticks(ax)
         fct.change_ymax(ax, factor=factor_ymax, ymin_to0=False)
         
+
     
     plt.tight_layout()
     plt.show()  
     directory = f"{loc.PLOTS}/"    
-    fct.save_file(fig, name_file, name_folder, f'BDT_vs_{fct.list_into_string(fct.flattenlist2D(names_y))}', f"{loc.PLOTS}/")
+    fct.save_file(fig, name_file, name_folder, f'{surname_x}_vs_{fct.list_into_string(fct.flattenlist2D(names_y))}', f"{loc.PLOTS}/")
 
 #################################################################################################
 ##################################### Automatic label plots #####################################

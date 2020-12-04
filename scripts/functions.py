@@ -208,7 +208,7 @@ def retrieve_pickle(name_data):
     
 def load_data(years=None, magnets=None, type_data='data', vars=None, method='read_root', 
               name_BDT='adaboost_0.8_without_P_cutDeltaM', cut_DeltaM=False, cut_PIDK=None,
-             cut_tau_Ds=False):
+             cut_tau_Ds=False, cut_BDT=None):
     """ return the pandas dataframe with the desired data
     
     @years      :: list of the wanted years
@@ -225,12 +225,17 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
                         143 < DeltaM < 148
     @cut_PIDK   :: if 'PID', cut out the events with tau_pion_ID < 4 if tau_pion and Dst_PID has an opposite charge
                    if 'ALL', cut out all the events with tau_pion_ID < 4
+    @cut_BDT    :: str or float, add '_BDT{cut_BDT}' in the name of file (only for type_data = 'common' and for already saved files)
+                            at this stage, this function does not cut on the BDT variable.
     
     @returns    :: df with the desired variables for all specified the years and magnets
     """
+    text_cut_BDT = "" if cut_BDT is None else f'_BDT{cut_BDT}'
     
     only_one_file = False # True if we retrieve only one root file, independently of the years/magnets
     retrieve_saved = False
+    
+    
     if 'BDT' in vars:
         cut_DeltaM = True
     if 'sWeight' in vars:
@@ -261,15 +266,15 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
         variables_saved = ['B0_M','tau_M', 'BDT', 'sWeight']
         
         
-        if list_included(vars, ['B0_M', 'tau_M', 'BDT']) and cut_DeltaM and magnets == all_magnets and years == all_years and cut_PIDK==None and name_BDT == 'adaboost_0.8_without_P_cutDeltaM' : 
+        if list_included(vars, ['B0_M', 'tau_M', 'BDT']) and cut_DeltaM and magnets == all_magnets and years == all_years and cut_PIDK==None and name_BDT == 'adaboost_0.8_without_P_cutDeltaM' and not cut_tau_Ds: 
             only_one_file = True
             retrieve_saved = True
-            complete_path = f"{loc.OUT}root/common/all_common.root"
+            complete_path = f"{loc.OUT}root/common/all_common{text_cut_BDT}.root"
             tree_name = 'DecayTreeTuple/DecayTree'
-        elif list_included(vars, variables_saved) and cut_DeltaM and magnets == all_magnets and years == all_years and cut_PIDK==None and name_BDT == 'adaboost_0.8_without_P_cutDeltaM':
+        elif list_included(vars, variables_saved) and cut_DeltaM and magnets == all_magnets and years == all_years and cut_PIDK==None and name_BDT == 'adaboost_0.8_without_P_cutDeltaM' and cut_tau_Ds:
             only_one_file = True
             retrieve_saved = True
-            complete_path = f"{loc.OUT}root/common/common_B0toDstDs.root"
+            complete_path = f"{loc.OUT}root/common/common_B0toDstDs{text_cut_BDT}.root"
             tree_name = 'DecayTree'
             
         else:
@@ -341,7 +346,10 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
             vars += ['tau_pion0_PIDK', 'tau_pion1_PIDK', 'tau_pion2_PIDK']
         if mode_sWeight:
             vars.remove('sWeight')
-            
+    
+    
+    
+    
     dfr = {}
     dfr_tot = pd.DataFrame()
     
@@ -376,13 +384,17 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
     return dfr_tot
 
 
-def save_dataframe(df, name_file, name_key):
+def save_dataframe(df, name_file, name_key, name_folder=None):
     """ save the dataframe in a .root file
     @df        :: dataframe to save
     @name_file :: name of the file that will be savec (.root file)
     @name_key  :: name of the tree where the file will be saved
     """
-    df.to_root(loc.OUT + f"root/{name_file}.root", key=name_key)
+    path = loc.OUT + 'root/'
+    path = create_directory(path,name_folder)
+    path+= f"/{name_file}.root"
+    print(path)
+    df.to_root(path, key=name_key)
     
     
             
@@ -511,11 +523,14 @@ def list_into_string(L, sep='_'):
     
     @returns: str with all the elements separated by the argument sep    
     """
-    string = ""
-    for l in L:
-        string += str(l)
-        string += sep
-    return string[:-len(sep)]
+    if not isinstance(L, str):
+        string = ""
+        for l in L:
+            string += str(l)
+            string += sep
+        return string[:-len(sep)]
+    else:
+        return L
 
 def latex_format(text):
     """Replace _ by \_ to avoid latex errors with matplotlib"""
@@ -586,7 +601,7 @@ def show_grid(ax, which='major'):
     @ax    :: axis where to show the grid
     which  :: 'major' or 'minor'
     """
-    ax.grid(b=True, which=which, color='#666666', linestyle='-', alpha = 0.5)
+    ax.grid(b=True, which=which, color='#666666', linestyle='-', alpha = 0.2)
 
 def plot_hist_alone(ax, data, n_bins, low, high, color, mode_hist, alpha = 1, 
                     density = False, label = None, label_ncounts = False, weights=None):
@@ -742,7 +757,7 @@ def set_label_divided_hist(ax, name_variable, unit_variable, bin_width, names_da
     
 def set_label_ticks(ax, labelsize=20):
     """Set label ticks to size given by labelsize"""
-    ax.tick_params(axis='both', which='major', labelsize=20)
+    ax.tick_params(axis='both', which='both', labelsize=20)
 
 def add_text(text1,text2, sep = ' ', default=None):
     """ concatenate 2 texts with sep between them, unless one of them is None
