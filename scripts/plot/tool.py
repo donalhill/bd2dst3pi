@@ -258,7 +258,7 @@ def set_label_ticks(ax, labelsize=20):
     ax.tick_params(axis='both', which='both', labelsize=20)
 
 
-def fix_plot(ax, ymax=1.1, show_leg=True, fontsize_ticks=20., fontsize_leg=20.):
+def fix_plot(ax, ymax=1.1, show_leg=True, fontsize_ticks=20., fontsize_leg=20., ymin_to0=True):
     """ Some fixing of the parameters (fontsize, ymax, legend)
     @ax              :: axis where to plot
     @ymax            :: float, multiplicative factor of ymax
@@ -268,11 +268,11 @@ def fix_plot(ax, ymax=1.1, show_leg=True, fontsize_ticks=20., fontsize_leg=20.):
     """
     
     if ymax is not None:
-        change_ymax(ax,ymax)
+        change_ymax(ax,ymax, ymin_to0)
     
     set_label_ticks(ax)
     if show_leg:
-        plt.legend(fontsize = fontsize_leg)
+        ax.legend(fontsize = fontsize_leg)
 
 def set_log_scale(ax, axis='both'):
     """Set label ticks to size given by labelsize"""
@@ -350,7 +350,7 @@ def get_name_unit_particule_var(variable):
         if name_var is None:
             name_var = latex_format(var)
         if name_particle is None:
-            name_variable = var
+            name_variable = latex_format(var)
         else:
             name_variable = f"{name_var}({name_particle})"
     else:

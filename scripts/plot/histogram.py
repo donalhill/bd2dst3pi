@@ -180,7 +180,7 @@ def plot_hist(dfs, variable, name_variable=None, unit_variable=None, n_bins=100,
     """ Save the histogram(s) of variable of the data given in dfs
     
     @dfs             :: Dictionnary {name of the dataframe : pandas dataframe, ...}
-    @variable        :: Variable, in the dataframes
+    @variable        :: str, name of the variable, in the dataframes
     @name_variable   :: Name of the variable that will be used in the labels of the plots
     @unit_variable   :: Unit of the variable
     @n_bins          :: Desired number of bins of the histogram
@@ -237,7 +237,7 @@ def plot_hist(dfs, variable, name_variable=None, unit_variable=None, n_bins=100,
               
     #Some plot style stuff
     set_label_hist(ax, name_variable, unit_variable, bin_width, density=density, fontsize=25)
-    pt.fix_plot(ax, ymax=1+0.1*len(name_datas), show_leg=len(dfs)>1)
+    pt.fix_plot(ax, ymax=1+0.15*len(name_datas), show_leg=len(dfs)>1)
     
     #Remove any space not needed around the plot
     plt.tight_layout()
@@ -255,7 +255,7 @@ def plot_divide(dfs, variable, name_variable,unit_variable, n_bins=100, low=None
         
     @dfs             :: Dictionnary of 2 couple (key:value) 
                             {name_dataframe_1 : pandas_dataframe_1, name_dataframe_2 : pandas_dataframe_2}
-    @variable        :: Variable, in the dataframes
+    @variable        :: str, name of the variable, in the dataframes
     @name_variable   :: Name of the variable that will be used in the labels of the plots
     @unit_variable   :: Unit of the variable
     @n_bins          :: Desired number of bins of the histogram
@@ -297,20 +297,16 @@ def plot_divide(dfs, variable, name_variable,unit_variable, n_bins=100, low=None
     ax.plot([low,high], [1.,1.], linestyle='--', color='b',marker='')
     
     # Set lower and upper range of the x and y axes
-    plt.xlim(low,high)
-    ymin, ymax = plt.ylim()
-    plt.ylim(0.,ymax*1.2)
+    pt.fix_plot(ax, ymax=1.1, show_leg=False, fontsize_ticks=20., ymin_to0=False)
     
     # Labels
     set_label_divided_hist(ax, name_variable, unit_variable, bin_width, names_data, fontsize=25)    
 
-    # Set the font size of the axis numbers
-    pt.set_label_ticks(ax)
+    
 
     
     #R emove any space not needed around the plot
     plt.tight_layout()
-
     plt.show()
 
     #Save the plot as a PDF document into our PLOTS folder (output/plots as defined in bd2dst3pi/locations.py)    

@@ -9,25 +9,21 @@ import BDT
 ## Variables of the BDT ---------------------------------------------------
 part_variables_to_plot = [] # particle,variable
 
+for particle in ['B0']:
+    variables.append(f"{particle}_M")
+
 for particle in ['B0', 'Dst', 'tau_pion0', 'tau_pion1', 'tau_pion2']:
-    part_variables_to_plot.append((particle,'P'))
-    part_variables_to_plot.append((particle,'PT'))
+    variables.append(f"{particle}_P")
+    variables.append(f"{particle}_PT")
 
 for particle in ['B0', 'Dst', 'tau']:
-    part_variables_to_plot.append((particle,'ENDVERTEX_CHI2'))
+    variables.append(f"{particle}_ENDVERTEX_CHI2")
 
+        
 for particle in ['tau_pion0', 'tau_pion1', 'tau_pion2']:
-    part_variables_to_plot.append((particle,'TRACK_CHI2NDOF'))
+    variables.append(f"{particle}_TRACK_CHI2NDOF")
 
-for particle in ['B0','Dst', 'D0']:
-    part_variables_to_plot.append((particle,'M'))
 
-variables = []
-
-for particle,variable in part_variables_to_plot:
-    variables.append(f"{particle}_{variable}")
-
-##variables = ['B0_P']
 print('variables: ', variables)
 ## Retrieve data -------------------------------------------------------------
 df_tot = {}
@@ -38,7 +34,7 @@ vars = variables
 print("retrieve MC")
 _, df_train['MC'] = load_data(years,magnets,
                                    type_data = 'MC',vars = variables)
-print("retrieve data_strip")
+print("retrieve background")
 _, df_train['data_strip'] = load_data(years,
                                     magnets,
                                     type_data = 'data_strip',
@@ -53,7 +49,7 @@ _, df_train['ws_strip'] = load_data(years,
                                 vars = variables)
 
 
-print("cuts on delta(M) and B0_M")
+print("Remove the variables created to cut on DeltaM")
 low = 5050.
 high = 5550.
 for d in 'data_strip','MC','ws_strip':
@@ -73,7 +69,7 @@ variables = variables[:-4]
 df_train['ws_strip']=df_train['ws_strip'].sample(frac=0.80)
 
 print("Concatenation")
-X, y, df = BDT.concatenate(df_train['MC'], df_train['data_strip'])
+X, y, df = BDT.concatenate(df_train)
 #name_BDT = 'adaboost_without_P_with_cut_deltaM'
 name_BDT = 'adaboost_0.8_without_P_cutDeltaM'
 

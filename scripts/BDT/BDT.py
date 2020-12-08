@@ -1,9 +1,24 @@
+"""
+Anthony Correia
+08/12/20
+- Plot the trained variables in the signal vs background sample
+- Prepare the signal and background sample (merge them, create a 'y' variable for learning, ...
+- Train the BDT with the specified classifier (adaboost or gradientboosting)
+- Plot the result of the tests (ROC curve, overtraining check)
+- Save the result
+"""
+
+
 from bd2dst3pi.locations import loc
-from functions import list_into_string, create_directory
+from plot.tool import list_into_string, create_directory
 
 import matplotlib.pyplot as plt
 
 import numpy as np
+
+import plot.tool as pt
+import load_save_data as l
+
 
 import pandas as pd
 import pandas.core.common as com
@@ -24,10 +39,10 @@ import pickle
 
 # Parameters of the plot
 from matplotlib import rc, rcParams, use
-#rc('font',**{'family':'serif','serif':['Roman']})
-rc('text', usetex=False)
+rc('font',**{'family':'serif','serif':['Roman']})
+#rc('text', usetex=False)
 rcParams['axes.unicode_minus'] = False
-use('Agg') #no plot.show() --> no display needed
+#use('Agg') #no plot.show() --> no display needed
 
 #################################################################################################
 ###################################### Plotting function ########################################
@@ -40,7 +55,7 @@ def signal_background(data1, data2, column=None,range_column=None, grid=True,
                       sharex=False,
                       sharey=False, figsize=None,
                       layout=None, bins=40,name_file=None,
-                      name_folder=None):
+                      name_folder=None, **kwds):
     """Draw histogram of the DataFrame's series comparing the distribution
     in `data1` to `data2`.
     
@@ -119,14 +134,10 @@ def signal_background(data1, data2, column=None,range_column=None, grid=True,
     #fig.subplots_adjust(wspace=0.3, hspace=0.7)
     if name_file is None:
         name_file = list_into_string(column)
+        
+    pt.save_file(fig, f"1D_hist_{name_file}", name_folder= f'BDT/{name_folder}')
     
-    directory = create_directory(f'{loc.PLOTS}/BDT/',name_folder)
-    plt.savefig(op.join(directory,f"1D_hist_{name_file}.pdf"))
-    
-    fig.savefig(f"{loc.PLOTS}/BDT/")
-    
-    plt.close()
-    return axes
+    return fig, axes
 
 def correlations(data, name_file=None,name_folder=None, **kwds):
     """Calculate pairwise correlation between features of the dataframe data
@@ -140,6 +151,7 @@ def correlations(data, name_file=None,name_folder=None, **kwds):
     # simply call df.corr() to get a table of
     # correlation values if you do not need
     # the fancy plotting
+    rc('text', usetex=False)
     corrmat = data.corr(**kwds) # correlation
 
     fig, ax1 = plt.subplots(ncols=1, figsize=(12,10)) # 1 plot
@@ -166,17 +178,18 @@ def correlations(data, name_file=None,name_folder=None, **kwds):
     
     if name_file is None:
         name_file = list_into_string(column)
+        
+    pt.save_file(fig, f"corr_matrix_{name_file}", name_folder= f'BDT/{name_folder}')
     
-    directory = create_directory(f'{loc.PLOTS}/BDT/',name_folder)
-    plt.savefig(op.join(directory,f"corr_matrix_{name_file}.pdf"))
-    plt.close()
+    return fig, ax1
+    
 
 #################################################################################################
 ######################################## BDT training ###########################################
 ################################################################################################# 
 
 ## DATA PROCESSING ------------------------------------------------------
-def concatenate(dfa_tot):
+def concatenate(dfa_tot_sig, dfa_tot_bkg):
     """
     @dfa_tot    :: dictionnary of dataframes, with
                             * 'MC'      : pandas data frame of the MC data
@@ -186,24 +199,27 @@ def concatenate(dfa_tot):
         - y  : new variable: numpy array with 1 for the MC events, and 0 for background events
         - df : pandas dataframe with 'MC' and 'ws_strip' concatenated and with the new variable 'y'
     """
+    assert len(dfa_tot_sig.columns) == len(dfa_tot_bkg.columns)
+    assert (dfa_tot_sig.columns == dfa_tot_bkg.columns).all()
+    
     # Concatenated data
-    X = np.concatenate((dfa_tot['MC'], dfa_tot['ws_strip']))
+    X = np.concatenate((dfa_tot_sig, dfa_tot_bkg))
     # List of 1 for signal and 0 for background (mask)
-    y = np.concatenate((np.ones(dfa_tot['MC'].shape[0]),
-                        np.zeros(dfa_tot['ws_strip'].shape[0])))
+    y = np.concatenate((np.ones(dfa_tot_sig.shape[0]),
+                        np.zeros(dfa_tot_bkg.shape[0])))
 
     # Concatened dataframe of signal + background, with a new variable y:
     # y = 0 if background
     # y = 1 if signal
     df = pd.DataFrame(np.hstack((X, y.reshape(y.shape[0], -1))),
-                      columns=list(dfa_tot['MC'].columns)+['y'])
+                      columns=list(dfa_tot_sig.columns)+['y'])
     return X, y, df
 
 def bg_sig(y):
     """Return the mask to get the background and the signal (in this order)"""
     return (y<0.5),(y>0.5)
 
-def BDT(X,y):
+def BDT(X,y, classifier='adaboost'):
     """ Train the BDT and return the result
     
     @X       :: numpy ndarray,  with signal and background concatenated,
@@ -227,12 +243,19 @@ def BDT(X,y):
     # We need min_samples_leaf samples before deciding to create a new leaf
 
     # Define the BDT
-    bdt = AdaBoostClassifier(dt,
-                             algorithm='SAMME',
-                             n_estimators=800, # Number of trees 
-                             learning_rate=0.1, # before, 0.5
-                            ) # Learning rate shrinks the contribution of each tree by alpha
-#     bdt = GradientBoostingClassifier(n_estimators=1000, max_depth=1, learning_rate=0.1, min_samples_split=2,verbose=1)
+    if classifier == 'adaboost':
+        bdt = AdaBoostClassifier(dt,
+                                 algorithm='SAMME',
+                                 n_estimators=800, # Number of trees 
+                                 learning_rate=0.1, # before, 0.5
+                                ) # Learning rate shrinks the contribution of each tree by alpha
+    elif classifier == 'gradientboosting':
+        bdt = GradientBoostingClassifier(n_estimators=1000, max_depth=1, learning_rate=0.1, min_samples_split=2,verbose=1)
+    elif classifier == 'xgboost':
+        import xgboost as xgb
+        bdt = xgb.XGBClassifier(objective="binary:logistic", random_state=1, learning_rate=0.1)
+        
+        
     ## Learning (fit)
     bdt.fit(X_train, y_train,sample_weight=weights)
     
@@ -253,7 +276,9 @@ def classification_report_print(X_test, y_test, bdt,name_BDT=""):
     @bdt           : trained BDT
     @name_BDT      : str, name of the BDT, used for the name of the saved .txt file
     """
-    
+#     if xgboost:
+#         y_predicted = xgbmodel.predict_proba(X)[:,1]
+#     else:    
     y_predicted = bdt.predict(X_test)
     
     classification_report_str = classification_report(y_test, y_predicted,
@@ -270,9 +295,9 @@ def classification_report_print(X_test, y_test, bdt,name_BDT=""):
     print("Area under ROC curve: %.4f"%(ROC_AUC_score))
 
     ## Write the results -----
-    if name_BDT != "":
-        name_BDT = '_' + name_BDT
-    with open(f"{loc.TABLES}/BDT/classification_report{name_BDT}.txt", 'w') as f:
+    name_file = pt.add_text('classification_report', name_BDT, '_')
+
+    with open(f"{loc.TABLES}/BDT/{name_file}.txt", 'w') as f:
         f.write(classification_report_str)
         f.write("Area under ROC curve: %.4f"%(ROC_AUC_score))
 
@@ -297,29 +322,30 @@ def plot_roc(X_test, y_test, bdt,name_BDT = "",name_folder = None):
     # fpr: Increasing false positive rates such that element i is the false positive rate of predictions with score >= thresholds[i].
     # tpr: Increasing true positive rates such that element i is the true positive rate of predictions with score >= thresholds[i].
     # thresholds: Decreasing thresholds on the decision function used to compute fpr and tpr. thresholds[0] represents no instances being predicted and is arbitrarily set to max(y_score) + 1
-    
+    fig, ax = plt.subplots(figsize=(8,6))
     roc_auc = auc(fpr, tpr)
 
     ## Plot the results -----
-    plt.plot(fpr, tpr, lw=1, label='ROC (area = %0.2f)'%(roc_auc))
-    plt.plot([0, 1], [0, 1], '--', color=(0.6, 0.6, 0.6), label='Luck')
-    plt.xlim([-0.05, 1.05])
-    plt.ylim([-0.05, 1.05])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
+    ax.plot(fpr, tpr, lw=1, label='ROC (area = %0.2f)'%(roc_auc))
+    ax.plot([0, 1], [0, 1], '--', color=(0.6, 0.6, 0.6), label='Luck')
+    ax.set_xlim([-0.05, 1.05])
+    ax.set_ylim([-0.05, 1.05])
+    ax.set_xlabel('False Positive Rate')
+    ax.set_ylabel('True Positive Rate')
     title = 'Receiver operating characteristic'
     if name_BDT is not None:
         title += f" - {name_BDT}"
-    plt.title(title)
-    plt.legend(loc="lower right")
-    plt.grid()
+    ax.set_title(title)
+    
+    ax.legend(loc="lower right")
+    pt.show_grid(ax)
     
     ## Save the results -----
-    if name_BDT != "":
-        name_BDT = '_' + name_BDT
-    directory = create_directory(f'{loc.PLOTS}/BDT/',name_folder)
-    plt.savefig(op.join(directory,f"ROC{name_BDT}.pdf"))
-    plt.close()
+    
+    name_file = pt.add_text('ROC', name_BDT, '_')
+    pt.save_file(fig, name_file, name_folder= f'BDT/{name_folder}')
+    
+    return fig, ax
 
 def compare_train_test(clf, X_train, y_train, X_test, y_test, bins=30, name_BDT="",name_folder=None):
     """ Plot and save the overtraining plot in {loc.PLOTS}/BDT/{name_folder}/overtraining_{name_BDT}.pdf
@@ -335,6 +361,8 @@ def compare_train_test(clf, X_train, y_train, X_test, y_test, bins=30, name_BDT=
     @name_BDT      :: str, name of the BDT, used for the name of the saved plot
     @name_folder   :: str, name of the folder where to save the BDT
     """
+    fig, ax = plt.subplots(figsize=(8,6))
+    
     ## decisions = [d(X_train_background), d(X_train_signal),d(X_test_background), d(X_test_signal)]
     decisions = []
     for X,y in ((X_train, y_train), (X_test, y_test)):
@@ -350,11 +378,11 @@ def compare_train_test(clf, X_train, y_train, X_test, y_test, bins=30, name_BDT=
     
     
     ## Plot for the train data the stepfilled histogram of background (y<0.5) and signal (y>0.5) 
-    plt.hist(decisions[0],
+    ax.hist(decisions[0],
              color='r', alpha=0.5, range=low_high, bins=bins,
              histtype='stepfilled', density=True,
              label='S (train)')
-    plt.hist(decisions[1],
+    ax.hist(decisions[1],
              color='b', alpha=0.5, range=low_high, bins=bins,
              histtype='stepfilled', density=True,
              label='B (train)')
@@ -368,7 +396,7 @@ def compare_train_test(clf, X_train, y_train, X_test, y_test, bins=30, name_BDT=
     
     width = (bins[1] - bins[0])
     center = (bins[:-1] + bins[1:]) / 2
-    plt.errorbar(center, hist, yerr=err, fmt='o', c='r', label='S (test)')
+    ax.errorbar(center, hist, yerr=err, fmt='o', c='r', label='S (test)')
     
     hist, bins = np.histogram(decisions[3],
                               bins=bins, range=low_high, density=True)
@@ -376,23 +404,21 @@ def compare_train_test(clf, X_train, y_train, X_test, y_test, bins=30, name_BDT=
     scale = len(decisions[2]) / sum(hist)
     err = np.sqrt(hist * scale) / scale
 
-    plt.errorbar(center, hist, yerr=err, fmt='o', c='b', label='B (test)')
+    ax.errorbar(center, hist, yerr=err, fmt='o', c='b', label='B (test)')
 
-    plt.xlabel("BDT output")
-    plt.ylabel("Arbitrary units")
-    plt.legend(loc='best')
-    plt.grid()
+    ax.set_xlabel("BDT output")
+    ax.set_ylabel("Arbitrary units")
+    ax.legend(loc='best')
+    pt.show_grid(ax)
     
+    name_file = pt.add_text('overtraining', name_BDT, '_')
+    pt.save_file(fig, name_file, name_folder= f'BDT/{name_folder}')
     
-    if name_BDT != "":
-        name_BDT = '_' + name_BDT
-    directory = create_directory(f'{loc.PLOTS}/BDT/',name_folder)
-    plt.savefig(op.join(directory,f"overtraining{name_BDT}.pdf"))
-    plt.close()
+    return fig, ax
 
 from root_numpy import array2root
 
-def apply_BDT(df_tot, df_train, bdt,name_BDT="", save_BDT=False):
+def apply_BDT(df_tot, df_train, bdt,name_BDT="", save_BDT=False, kind_data='common'):
     """ 
     Apply the BDT to the real data in df_tot['data_strip']
     Add the BDT output as a new variable in df_tot['data_strip']
@@ -408,14 +434,17 @@ def apply_BDT(df_tot, df_train, bdt,name_BDT="", save_BDT=False):
     
     # Apply the BDT to the 
     df_tot['BDT'] = bdt.decision_function(df_train)
-    if name_BDT != "":
-        name_BDT = '_' + name_BDT
+
+    
+    name_file = pt.add_text(kind_data, name_BDT, '_')
     
     df = pd.DataFrame()
     df['BDT'] = df_tot['BDT']
-    df.to_root(loc.OUT + f"tmp/BDT{name_BDT}.root",key = 'BDT')
-    df_tot.to_root(loc.OUT + f"root/data_strip{name_BDT}.root",key = 'DecayTreeTuple/DecayTree')
-
+    #df.to_root(loc.OUT + f"tmp/BDT{name_BDT}.root",key = 'BDT')
+    
+    l.save_dataframe(df, 'BDT_'+name_file, 'BDT')
+    l.save_dataframe(df_tot, name_file, 'DecayTree')
+    
     if save_BDT:
-        with open(loc.OUT + "pickle/bdt"+name_BDT+".pickle","wb") as f:
-            pickle.dump(bdt,f)
+        dump_pickle(bdt, f'bdt_{name_file}')
+

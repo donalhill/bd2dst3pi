@@ -11,6 +11,9 @@ import pandas as pd
 
 from os import makedirs
 
+from copy import deepcopy
+from plot.tool import create_directory
+
 #################################################################################################
 ######################################## TOOLS function #########################################
 ################################################################################################# 
@@ -185,14 +188,14 @@ def load_dataframe(path, tree_name, columns, method='read_root'):
         del file
         return df
 
-def load_data(years=None, magnets=None, type_data='data', vars=None, method='read_root', 
+def load_data(years=None, magnets=None, type_data='common', vars=None, method='read_root', 
               name_BDT='adaboost_0.8_without_P_cutDeltaM', cut_DeltaM=False, cut_PIDK=None,
              cut_tau_Ds=False, cut_BDT=None):
     """ return the pandas dataframe with the desired data
     
     @years      :: list of the wanted years
     @magnets    :: list of the wanted magnets
-    @type_data  :: desired data: 'MC', 'data', 'data_strip' or 'ws_strip' or 'data_KPiPi'
+    @type_data  :: desired data: 'MC', 'data', 'data_strip' or 'ws_strip' or 'data_KPiPi' or 'common'
     @vars       :: desired variables
     @method     :: method to retrieve the data ('read_root' or 'uproot')
                         read_root is faster
@@ -209,15 +212,16 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
     
     @returns    :: df with the desired variables for all specified the years and magnets
     """
+    assert type_data in ['MC', 'data_strip', 'data', 'common', 'ws_strip', 'dataKPiPi']
     text_cut_BDT = "" if cut_BDT is None else f'_BDT{cut_BDT}'
     
     only_one_file = False # True if we retrieve only one root file, independently of the years/magnets
     retrieve_saved = False
     
-    
-    if 'BDT' in vars:
+    variables = deepcopy(vars)
+    if 'BDT' in variables:
         cut_DeltaM = True
-    if 'sWeight' in vars:
+    if 'sWeight' in variables:
         cut_tau_Ds = True
         
     tree_name = "DecayTree"
@@ -245,16 +249,28 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
         variables_saved = ['B0_M','tau_M', 'BDT', 'sWeight']
         
         
-        if list_included(vars, ['B0_M', 'tau_M', 'BDT']) and cut_DeltaM and magnets == all_magnets and years == all_years and cut_PIDK==None and name_BDT == 'adaboost_0.8_without_P_cutDeltaM' and not cut_tau_Ds: 
-            only_one_file = True
-            retrieve_saved = True
-            complete_path = f"{loc.OUT}root/common/all_common{text_cut_BDT}.root"
-            tree_name = 'DecayTreeTuple/DecayTree'
-        elif list_included(vars, variables_saved) and cut_DeltaM and magnets == all_magnets and years == all_years and cut_PIDK==None and name_BDT == 'adaboost_0.8_without_P_cutDeltaM' and cut_tau_Ds:
-            only_one_file = True
-            retrieve_saved = True
-            complete_path = f"{loc.OUT}root/common/common_B0toDstDs{text_cut_BDT}.root"
-            tree_name = 'DecayTree'
+        if list_included(variables, ['B0_M', 'tau_M', 'BDT']) and cut_DeltaM and magnets == all_magnets and years == all_years and cut_PIDK==None and not cut_tau_Ds: 
+            if name_BDT == 'adaboost_0.8_without_P_cutDeltaM':
+                only_one_file = True
+                retrieve_saved = True
+                complete_path = f"{loc.OUT}root/common/all_common{text_cut_BDT}.root"
+                tree_name = 'DecayTreeTuple/DecayTree'
+            elif name_BDT == 'common_adaboost_without_P_cutDeltaM_highB0M':
+                only_one_file = True
+                retrieve_saved = True
+                complete_path = f"{loc.OUT}root/common/common_adaboost_without_P_cutDeltaM_highB0M{text_cut_BDT}.root"
+                tree_name = 'DecayTree'
+        elif list_included(variables, variables_saved) and cut_DeltaM and magnets == all_magnets and years == all_years and cut_PIDK==None and cut_tau_Ds:
+            if name_BDT == 'adaboost_0.8_without_P_cutDeltaM':
+                only_one_file = True
+                retrieve_saved = True
+                complete_path = f"{loc.OUT}root/common/common_B0toDstDs{text_cut_BDT}.root"
+                tree_name = 'DecayTree'
+            elif name_BDT == 'common_adaboost_without_P_cutDeltaM_highB0M':
+                only_one_file = True
+                retrieve_saved = True
+                complete_path = f"{loc.OUT}root/common/Ds23pi_bkg_high_B0M{text_cut_BDT}.root"
+                tree_name = 'DecayTree'            
             
         else:
             path = f"{loc.COMMON}/data_90000000"
@@ -269,19 +285,19 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
         saved_variables_allPIDK = ['B0_M', 'tau_M', 'BDT', 
                                    'tau_pion0_PIDK', 'tau_pion1_PIDK', 'tau_pion2_PIDK']
         
-        if list_included(vars, ['B0_M','tau_M']) and magnets == all_magnets and years == all_years and cut_PIDK==None and cut_DeltaM:
+        if list_included(variables, ['B0_M','tau_M']) and magnets == all_magnets and years == all_years and cut_PIDK==None and cut_DeltaM:
             only_one_file = True
             retrieve_saved = True
             complete_path = f"{loc.OUT}root/data_strip_p/all_data_strip.root"
             tree_name = 'all_data_strip_cutDeltaM'
             
-        elif list_included(vars, saved_variables_PIDK) and magnets == all_magnets and years == all_years and cut_PIDK=='PID' and cut_DeltaM:
+        elif list_included(variables, saved_variables_PIDK) and magnets == all_magnets and years == all_years and cut_PIDK=='PID' and cut_DeltaM:
             only_one_file = True
             retrieve_saved = True
             complete_path = f"{loc.OUT}root/data_strip_p/data_strip.root"
             tree_name = 'data_strip_cutDeltaM_cutPID'
             
-        elif list_included(vars, saved_variables_allPIDK) and magnets == all_magnets and years == all_years and cut_PIDK=='ALL' and cut_DeltaM:
+        elif list_included(variables, saved_variables_allPIDK) and magnets == all_magnets and years == all_years and cut_PIDK=='ALL' and cut_DeltaM:
             only_one_file = True
             retrieve_saved = True
             complete_path = f"{loc.OUT}root/data_strip_p/data_strip.root"
@@ -307,39 +323,38 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
     else:
         print("Possible type of data: 'MC', 'data', 'data_strip_p', 'common', 'ws_strip', 'data_KPiPi")
     
-    mode_BDT = ('BDT' in vars)
-    mode_sWeight = ('sWeight' in vars)
+    mode_BDT = ('BDT' in variables)
+    mode_sWeight = ('sWeight' in variables)
     
     if not retrieve_saved:
         if mode_BDT:
-            vars.remove('BDT')
+            variables.remove('BDT')
         if cut_DeltaM:
-            vars.append('Dst_M')
-            vars.append('D0_M')
+            variables.append('Dst_M')
+            variables.append('D0_M')
 
         if cut_PIDK == 'PID':
-            vars += ['tau_pion0_ID', 'tau_pion1_ID', 'tau_pion2_ID',
+            variables += ['tau_pion0_ID', 'tau_pion1_ID', 'tau_pion2_ID',
                     'tau_pion0_PIDK', 'tau_pion1_PIDK', 'tau_pion2_PIDK',
                     'Dst_ID']
         elif cut_PIDK == 'ALL':
-            vars += ['tau_pion0_PIDK', 'tau_pion1_PIDK', 'tau_pion2_PIDK']
+            variables += ['tau_pion0_PIDK', 'tau_pion1_PIDK', 'tau_pion2_PIDK']
         if mode_sWeight:
-            vars.remove('sWeight')
+            variables.remove('sWeight')
     
-    
-    
+    assert not(name_BDT == "common_adaboost_without_P_cutDeltaM_highB0M" and not retrieve_saved)
     
     dfr = {}
     dfr_tot = pd.DataFrame()
     
     if only_one_file:
-        dfr_tot = load_dataframe(complete_path, tree_name, vars, method=method)
+        dfr_tot = load_dataframe(complete_path, tree_name, variables, method=method)
     
     else:
         for y in years:
             for m in magnets:
                 complete_path = f"{path}_{y}_{m}{ext}"
-                dfr[f"{y}_{m}"] = load_dataframe(complete_path, tree_name, vars, method=method)
+                dfr[f"{y}_{m}"] = load_dataframe(complete_path, tree_name, variables, method=method)
                 dfr_tot = dfr_tot.append(dfr[f"{y}_{m}"])
         if cut_DeltaM:
             #print('cut on Delta_M')
@@ -360,6 +375,8 @@ def load_data(years=None, magnets=None, type_data='data', vars=None, method='rea
         if mode_sWeight: 
             dfr_tot = dfr_tot.reset_index()
             dfr_tot['sWeight'] = read_root(loc.OUT+f'root/{type_data}/common_B0toDstDs_sWeights.root', 'sWeights', columns=['sig'])
+    
+    dfr_tot = dfr_tot.reset_index()
     return dfr_tot
 
 
@@ -371,7 +388,7 @@ def save_dataframe(df, name_file, name_key, name_folder=None):
     @name_key  :: name of the tree where the file will be saved
     """
     path = loc.OUT + 'root/'
-    path = create_directory(path,name_folder)
+    path = create_directory(path, name_folder)
     path+= f"/{name_file}.root"
     print(path)
     df.to_root(path, key=name_key)
