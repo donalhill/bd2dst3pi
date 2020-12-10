@@ -64,7 +64,8 @@ def add_value_labels(ax, lx, ly, labels, space_x=-10, space_y=5, labelsize=12):
 #################################################################################################  
 
 def plot_xys (ax, x, ly, xlabel, labels=None, colors=['b','g','r','y'], fontsize=25, markersize=1,
-             linewidth=2.5, linestyle='-', annotations=None, fontsize_annot=15., space_x=-15, space_y=5):
+             linewidth=2.5, linestyle='-', factor_ymax=1.,
+              annotations=None, fontsize_annot=15., space_x=-15, space_y=5, pos_text_LHC=None):
     """
     @ax               :: axis where to plot
     @x                :: list of float, points of the x-axis
@@ -108,8 +109,13 @@ def plot_xys (ax, x, ly, xlabel, labels=None, colors=['b','g','r','y'], fontsize
     else:
         ax.set_ylabel('value', fontsize=25)
     
-    if plot_legend:
-        ax.legend(fontsize=25)
+    # Grid
+    pt.show_grid(ax, which='major')
+    pt.show_grid(ax, which='minor')
+        
+    # Ticks
+    pt.fix_plot(ax, ymax=factor_ymax, show_leg=plot_legend, fontsize_leg=25, ymin_to0=False, pos_text_LHC=pos_text_LHC)    
+    
     
     if annotations is not None:
         assert len(ly)==1
@@ -119,7 +125,7 @@ def plot_x_list_ys(x, y, name_x, names_y, surname_x=None, surnames_y=None,
                    annotations=None, markersize=1,
                    linewidth=2.5,fontsize=25, name_file=None, name_folder=None,
                    factor_ymax=1., linestyle='-', fontsize_annot=15.,
-                   space_x=-15, space_y=5, log_scale=None):
+                   space_x=-15, space_y=5, log_scale=None, save_fig=True, pos_text_LHC=None):
     """ plot x as a function of the y of the list l_y
     
     @x          :: list or array of floats, points in the x-axis
@@ -135,6 +141,8 @@ def plot_x_list_ys(x, y, name_x, names_y, surname_x=None, surnames_y=None,
     @factor_ymax:: float, ymax is multiplied by factor_ymax
     @log_scale  :: 'both', 'x' ot 'y', specify which axis is wanted to be in log scale
     @linestyle, fontsize_annot, space_x, space_y --> passed to plot_xys
+    
+    @returns    :: fig, axs
     """
     
     if surname_x is None:
@@ -162,19 +170,15 @@ def plot_x_list_ys(x, y, name_x, names_y, surname_x=None, surnames_y=None,
         # In the same groups_ly, we plot the curves in the same plot
         plot_xys (ax, x, ly, xlabel=name_x, labels=groups_surnames_y[k], 
                   annotations=annotations, markersize=markersize,
-                  fontsize=fontsize, linewidth=linewidth, linestyle=linestyle,
-                  fontsize_annot=fontsize_annot, space_x=space_x, space_y=space_y)
+                  fontsize=fontsize, linewidth=linewidth, linestyle=linestyle, factor_ymax=factor_ymax,
+                  fontsize_annot=fontsize_annot, space_x=space_x, space_y=space_y, pos_text_LHC=pos_text_LHC)
         
         pt.set_log_scale(ax, axis=log_scale)
         
-        # Grid
-        pt.show_grid(ax, which='major')
-        pt.show_grid(ax, which='minor')
-        
-        # Ticks
-        pt.set_label_ticks(ax)
-        pt.change_ymax(ax, factor=factor_ymax, ymin_to0=False)
         
     plt.tight_layout()
-    plt.show()  
-    pt.save_file(fig, name_file, name_folder, f'{surname_x}_vs_{pt.list_into_string(pt.flattenlist2D(names_y))}')
+    plt.show()
+    if save_fig:
+        pt.save_file(fig, name_file, name_folder, f'{surname_x}_vs_{pt.list_into_string(pt.flattenlist2D(names_y))}')
+    
+    return fig, axs

@@ -7,6 +7,8 @@ import os.path as op
 from os import makedirs
 
 from variables import variables_params, particle_names
+from load_save_data import create_directory
+
 
 
 #################################################################################################
@@ -29,19 +31,6 @@ def remove_space(text):
 
 # SAVING FIGURE ================================================
 
-def create_directory(directory,name_folder):
-    ''' if name_folder is not None, created a folder in {directory}/{name_folder}
-    
-    @directory   :: directory where to create the folder
-    @name_folder :: str, name of the folder to create
-    '''
-    if name_folder is not None:
-        directory = op.join(directory,name_folder)
-        try:
-            makedirs(directory)
-        except OSError:
-            pass
-    return directory
 
 
 def save_file(fig, name_file,name_folder=None, alt_name_file=None, directory=f"{loc.PLOTS}/"):
@@ -59,10 +48,12 @@ def save_file(fig, name_file,name_folder=None, alt_name_file=None, directory=f"{
     if name_file is None:
         name_file = alt_name_file
 
+    name_file = remove_space(remove_latex(name_file))
+    path = op.join(directory, f"{name_file}")
     #Save the plot as a PDF document into our PLOTS folder (output/plots as defined in bd2dst3pi/locations.py)
-    fig.savefig(op.join(directory, f"{remove_space(remove_latex(name_file))}.pdf"), dpi=1200, bbox_inches="tight")
-    fig.savefig(op.join(directory, f"{remove_space(remove_latex(name_file))}.png"), dpi=600, bbox_inches="tight")
-    print(op.join(directory, f"{remove_space(remove_latex(name_file))}.pdf"))
+    fig.savefig(path + '.pdf', dpi=600, bbox_inches="tight")
+    fig.savefig(path + '.jpg', dpi=600, bbox_inches="tight")
+    print(path)
 
 #################################################################################################
 ############################### Tool functions for plotting #####################################
@@ -258,7 +249,7 @@ def set_label_ticks(ax, labelsize=20):
     ax.tick_params(axis='both', which='both', labelsize=20)
 
 
-def fix_plot(ax, ymax=1.1, show_leg=True, fontsize_ticks=20., fontsize_leg=20., ymin_to0=True):
+def fix_plot(ax, ymax=1.1, show_leg=True, fontsize_ticks=20., fontsize_leg=20., ymin_to0=True, pos_text_LHC=None):
     """ Some fixing of the parameters (fontsize, ymax, legend)
     @ax              :: axis where to plot
     @ymax            :: float, multiplicative factor of ymax
@@ -273,6 +264,8 @@ def fix_plot(ax, ymax=1.1, show_leg=True, fontsize_ticks=20., fontsize_leg=20., 
     set_label_ticks(ax)
     if show_leg:
         ax.legend(fontsize = fontsize_leg)
+    
+    set_text_LHCb(ax, pos=pos_text_LHC)
 
 def set_log_scale(ax, axis='both'):
     """Set label ticks to size given by labelsize"""
@@ -281,21 +274,30 @@ def set_log_scale(ax, axis='both'):
     if axis == 'both' or axis == 'y':
         ax.set_yscale('log')
 
+def set_text_LHCb(ax, text='LHCb preliminary \n 2 ${fb}^{-1}$', fontsize=25., pos=None):
+    if pos is not None:
+        if isinstance(pos, str):
+            if pos=='left':
+                x = 0.02
+                y = 0.95
+                ha = 'left'
+            elif pos=='right':
+                x = 0.98
+                y = 0.95
+            ha = 'right'
+        elif isinstance(pos, list):
+            x = pos[0]
+            y = pos[1]
+            ha = pos[2]
+            
+        ax.text(x, y, text, verticalalignment='top', horizontalalignment=ha, 
+                transform=ax.transAxes, fontsize=fontsize)
+    
+    
 #################################################################################################
 ##################################### Automatic label plots #####################################
 #################################################################################################         
 
-
-def add_in_dic(key, dic, default=None):
-    ''' if key is not in dic, add it with value specified by default. In place.
-    @key     :: key of dictionnary
-    @dic     :: dictionnary
-    @default :: python object
-    
-    @returns :: nothing - in place
-    '''
-    if key not in dic:
-        dic[key] = default
 
 def retrieve_particle_variable(variable):
     '''
@@ -379,6 +381,4 @@ def get_name_file_title_BDT(name_file, title, cut_BDT, variable, name_data):
         name_file = add_text(name_file, f'BDT{cut_BDT}')
     
     return name_file, title
-
-
 

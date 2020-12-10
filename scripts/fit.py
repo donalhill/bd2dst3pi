@@ -1,5 +1,6 @@
 from bd2dst3pi.locations import loc
-from plot.tool import add_in_dic
+from load_save_data import create_directory, add_in_dic
+
 
 import zfit
 import json
@@ -32,7 +33,7 @@ def sum_crystalball(muL, muR, sigmaL, sigmaR, frac, obs, alphaL=None, alphaR=Non
 ########################################## Parameters ###########################################
 #################################################################################################
 
-def format_previous_params(df_params_recup):
+def format_previous_params(df_params_recup, recup_err=False):
     """ Remove the element in the dictionnary that ends with '_err'.
     For the other ones, removes what is after | in the keys.
     In particular: variable|BDT-0.2 will become variable
@@ -44,7 +45,7 @@ def format_previous_params(df_params_recup):
     """
     df_params_recup_formatted = {}
     for key, value in df_params_recup.items():
-        if not key.endswith('_err'):
+        if recup_err or not key.endswith('_err'):
             index = key.find('|')
             df_params_recup_formatted[key[:index]] = value
     
@@ -82,7 +83,7 @@ def define_zparams(initial_values, cut_BDT=None):
 ###################################### Fitting functions ########################################
 ################################################################################################# 
   
-def save_params(params,name_data, uncertainty=False, dic_add=None):
+def save_params(params,name_data, uncertainty=False, dic_add=None, name_folder=None):
     """ Save the parameters of the fit in {loc.JSON}/{name_data}_params.json
     
     @params        :: Result 'result.params' of the minimisation of the loss function
@@ -106,11 +107,24 @@ def save_params(params,name_data, uncertainty=False, dic_add=None):
     if dic_add is not None:
         for key, value in dic_add.items():
             param_results[key] = value
-            
-    with open(f"{loc.JSON}/{name_data}_params.json",'w') as f:
+    
+    directory = create_directory(loc.JSON, name_folder)
+    path = f"{directory}/{name_data}_params.json"
+    
+    with open(path,'w') as f:
         json.dump(param_results, f, sort_keys = True, indent = 4)
-    print(f"parameters saved in {loc.JSON}/{name_data}_params.json")
+    print(f"parameters saved in {path}")
 
+def retrieve_params(name_data, name_folder=None):
+    directory = create_directory(loc.JSON, name_folder)
+    path = f"{directory}/{name_data}_params.json"
+    
+    with open(path,'r') as f:
+        params = json.load(f)
+    
+    return params
+    
+    
 def launch_fit(model, data, extended = False):
     """Fit the data with the model
     
@@ -140,3 +154,15 @@ def launch_fit(model, data, extended = False):
     param = result.params
     print(param)        
     return result, param
+
+#################################################################################################
+####################################### TABLE function ##########################################
+################################################################################################# 
+
+def json_to_latex_table(path, name_json):
+    with open(f'{loc.JSON}/{path}/{name_json}.json', 'r') as f:
+        params = json.load(f)
+    
+    directory = create_directory(loc.JSON, path)
+    
+    

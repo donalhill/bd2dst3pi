@@ -10,9 +10,11 @@ import numpy as np
 import pandas as pd
 
 from os import makedirs
+import os.path as op
 
 from copy import deepcopy
-from plot.tool import create_directory
+
+import variables as v
 
 #################################################################################################
 ######################################## TOOLS function #########################################
@@ -29,6 +31,16 @@ def try_makedirs(path):
     except OSError:
         pass
 
+def create_directory(directory,name_folder):
+    ''' if name_folder is not None, created a folder in {directory}/{name_folder}
+    
+    @directory   :: directory where to create the folder
+    @name_folder :: str, name of the folder to create
+    '''
+    if name_folder is not None:
+        directory = op.join(directory,name_folder)
+        try_makedirs(directory)
+    return directory
 
 def list_included(L1,L2):
     ''' Return True if L1 included in L2
@@ -41,6 +53,24 @@ def list_included(L1,L2):
         if l not in L2:
             return False
     return True
+
+
+def add_in_dic(key, dic, default=None):
+    ''' if key is not in dic, add it with value specified by default. In place.
+    @key     :: key of dictionnary
+    @dic     :: dictionnary
+    @default :: python object
+    
+    @returns :: nothing - in place
+    '''
+    if key not in dic:
+        dic[key] = default
+
+def show_dictionnary(dic, name_dic):
+    print(f"{name_dic}:")
+    for key, value in dic.items():
+        print(f"{key}: {value}")
+    
 
 
 #################################################################################################
@@ -166,6 +196,15 @@ def add_flight_distance_tau(df):
     df[f"tau_flight_sig"]=df[f"tau_flight"]/df[f"tau_flight_err"]
     return df
 
+def add_constr_Dst(df, col='B0_M', Dst_M_PDG=v.Dst_M_PDG):
+    """ Add the column 'Ds_constr_{col}' in the df
+    @df     :: pandas dataframe with the variablaes 'B0_M' and 'Dst_M'
+    @col    :: str, name of the column of dataframe from which is computed the constrained column
+    @returns:: dataframe with the supplementary column
+    """
+    df[f"Dst_constr_{col}"] = df[col] - df['Dst_M'] + Dst_M_PDG
+    return df
+
 ## LOAD DATAFRAMES ===============================================================
 
 def load_dataframe(path, tree_name, columns, method='read_root'):
@@ -188,9 +227,32 @@ def load_dataframe(path, tree_name, columns, method='read_root'):
         del file
         return df
 
+    
+def load_saved_root(name_data, vars=None, name_folder="", tree_name=None, cut_BDT=None, method='read_root'):
+    """
+    @name_data  :: name of the root file
+    @vars       :: desired variables
+    @method     :: method to retrieve the data ('read_root' or 'uproot')
+                        read_root is faster
+    @cut_BDT    :: str or float, corresponding cut to load
+    @cut_deltaM :: if true (or if BDT is in vars), perform a cut on DeltaM
+                        143 < DeltaM < 148
+    
+    @returns    :: df with the desired variables
+    """
+    
+    text_cut_BDT = "" if cut_BDT is None else f'_BDT{cut_BDT}'
+    if tree_name is None:
+        tree_name = v.data_tree_names[name_data]
+    complete_path = f"{loc.OUT}/root/{name_folder}/{name_data}{text_cut_BDT}.root"
+    return load_dataframe(complete_path, tree_name, vars, method=method)
+    
+    
+    
+
 def load_data(years=None, magnets=None, type_data='common', vars=None, method='read_root', 
               name_BDT='adaboost_0.8_without_P_cutDeltaM', cut_DeltaM=False, cut_PIDK=None,
-             cut_tau_Ds=False, cut_BDT=None):
+             cut_tau_Ds=False):
     """ return the pandas dataframe with the desired data
     
     @years      :: list of the wanted years
@@ -207,20 +269,17 @@ def load_data(years=None, magnets=None, type_data='common', vars=None, method='r
                         143 < DeltaM < 148
     @cut_PIDK   :: if 'PID', cut out the events with tau_pion_ID < 4 if tau_pion and Dst_PID has an opposite charge
                    if 'ALL', cut out all the events with tau_pion_ID < 4
-    @cut_BDT    :: str or float, add '_BDT{cut_BDT}' in the name of file (only for type_data = 'common' and for already saved files)
-                            at this stage, this function does not cut on the BDT variable.
     
     @returns    :: df with the desired variables for all specified the years and magnets
     """
-    assert type_data in ['MC', 'data_strip', 'data', 'common', 'ws_strip', 'dataKPiPi']
-    text_cut_BDT = "" if cut_BDT is None else f'_BDT{cut_BDT}'
-    
-    only_one_file = False # True if we retrieve only one root file, independently of the years/magnets
-    retrieve_saved = False
+    assert type_data in ['MC', 'data_strip', 'data', 'common', 'ws_strip', 'data_KPiPi']
+    mode_BDT = False
     
     variables = deepcopy(vars)
     if 'BDT' in variables:
         cut_DeltaM = True
+        mode_BDT = True
+        
     if 'sWeight' in variables:
         cut_tau_Ds = True
         
@@ -247,66 +306,15 @@ def load_data(years=None, magnets=None, type_data='common', vars=None, method='r
     # new data strip ------------------------------------
     elif type_data == 'common':
         variables_saved = ['B0_M','tau_M', 'BDT', 'sWeight']
-        
-        
-        if list_included(variables, ['B0_M', 'tau_M', 'BDT']) and cut_DeltaM and magnets == all_magnets and years == all_years and cut_PIDK==None and not cut_tau_Ds: 
-            if name_BDT == 'adaboost_0.8_without_P_cutDeltaM':
-                only_one_file = True
-                retrieve_saved = True
-                complete_path = f"{loc.OUT}root/common/all_common{text_cut_BDT}.root"
-                tree_name = 'DecayTreeTuple/DecayTree'
-            elif name_BDT == 'common_adaboost_without_P_cutDeltaM_highB0M':
-                only_one_file = True
-                retrieve_saved = True
-                complete_path = f"{loc.OUT}root/common/common_adaboost_without_P_cutDeltaM_highB0M{text_cut_BDT}.root"
-                tree_name = 'DecayTree'
-        elif list_included(variables, variables_saved) and cut_DeltaM and magnets == all_magnets and years == all_years and cut_PIDK==None and cut_tau_Ds:
-            if name_BDT == 'adaboost_0.8_without_P_cutDeltaM':
-                only_one_file = True
-                retrieve_saved = True
-                complete_path = f"{loc.OUT}root/common/common_B0toDstDs{text_cut_BDT}.root"
-                tree_name = 'DecayTree'
-            elif name_BDT == 'common_adaboost_without_P_cutDeltaM_highB0M':
-                only_one_file = True
-                retrieve_saved = True
-                complete_path = f"{loc.OUT}root/common/Ds23pi_bkg_high_B0M{text_cut_BDT}.root"
-                tree_name = 'DecayTree'            
-            
-        else:
-            path = f"{loc.COMMON}/data_90000000"
-            ext = '.root'
-            tree_name = "DecayTreeTuple/DecayTree"
+        path = f"{loc.COMMON}/data_90000000"
+        ext = '.root'
+        tree_name = "DecayTreeTuple/DecayTree"
         
     # Previous data strip -------------------------------
     elif type_data == 'data_strip_p':
-        saved_variables_PIDK = ['B0_M', 'tau_M', 'BDT',
-                           'tau_pion0_ID', 'tau_pion1_ID', 'tau_pion2_ID','Dst_ID',
-                           'tau_pion0_PIDK', 'tau_pion1_PIDK', 'tau_pion2_PIDK']
-        saved_variables_allPIDK = ['B0_M', 'tau_M', 'BDT', 
-                                   'tau_pion0_PIDK', 'tau_pion1_PIDK', 'tau_pion2_PIDK']
-        
-        if list_included(variables, ['B0_M','tau_M']) and magnets == all_magnets and years == all_years and cut_PIDK==None and cut_DeltaM:
-            only_one_file = True
-            retrieve_saved = True
-            complete_path = f"{loc.OUT}root/data_strip_p/all_data_strip.root"
-            tree_name = 'all_data_strip_cutDeltaM'
-            
-        elif list_included(variables, saved_variables_PIDK) and magnets == all_magnets and years == all_years and cut_PIDK=='PID' and cut_DeltaM:
-            only_one_file = True
-            retrieve_saved = True
-            complete_path = f"{loc.OUT}root/data_strip_p/data_strip.root"
-            tree_name = 'data_strip_cutDeltaM_cutPID'
-            
-        elif list_included(variables, saved_variables_allPIDK) and magnets == all_magnets and years == all_years and cut_PIDK=='ALL' and cut_DeltaM:
-            only_one_file = True
-            retrieve_saved = True
-            complete_path = f"{loc.OUT}root/data_strip_p/data_strip.root"
-            tree_name = 'data_strip_cutDeltaM_cutallPIDK'
-            
-        else:
-            path = f"{loc.DATA_STRIP_p}/data_90000000"
-            ext = '.root'
-            tree_name = "DecayTreeTuple/DecayTree"
+        path = f"{loc.DATA_STRIP_p}/data_90000000"
+        ext = '.root'
+        tree_name = "DecayTreeTuple/DecayTree"
     
     # wrong sign data strip -------------------------------------
     elif type_data == 'ws_strip':
@@ -323,58 +331,45 @@ def load_data(years=None, magnets=None, type_data='common', vars=None, method='r
     else:
         print("Possible type of data: 'MC', 'data', 'data_strip_p', 'common', 'ws_strip', 'data_KPiPi")
     
-    mode_BDT = ('BDT' in variables)
     mode_sWeight = ('sWeight' in variables)
     
-    if not retrieve_saved:
-        if mode_BDT:
+    # Remove / add some variables ------------------------------
+    if mode_BDT:
             variables.remove('BDT')
-        if cut_DeltaM:
-            variables.append('Dst_M')
-            variables.append('D0_M')
-
-        if cut_PIDK == 'PID':
-            variables += ['tau_pion0_ID', 'tau_pion1_ID', 'tau_pion2_ID',
-                    'tau_pion0_PIDK', 'tau_pion1_PIDK', 'tau_pion2_PIDK',
-                    'Dst_ID']
-        elif cut_PIDK == 'ALL':
-            variables += ['tau_pion0_PIDK', 'tau_pion1_PIDK', 'tau_pion2_PIDK']
-        if mode_sWeight:
-            variables.remove('sWeight')
+    if cut_DeltaM:
+        variables.append('Dst_M')
+        variables.append('D0_M')
+    if cut_PIDK == 'PID':
+        variables += ['tau_pion0_ID', 'tau_pion1_ID', 'tau_pion2_ID',
+                'tau_pion0_PIDK', 'tau_pion1_PIDK', 'tau_pion2_PIDK',
+                'Dst_ID']
+    elif cut_PIDK == 'ALL':
+        variables += ['tau_pion0_PIDK', 'tau_pion1_PIDK', 'tau_pion2_PIDK']
     
-    assert not(name_BDT == "common_adaboost_without_P_cutDeltaM_highB0M" and not retrieve_saved)
-    
+    # Load variables -------------------------------------------    
     dfr = {}
-    dfr_tot = pd.DataFrame()
+    dfr_tot = pd.DataFrame()      
     
-    if only_one_file:
-        dfr_tot = load_dataframe(complete_path, tree_name, variables, method=method)
+    for y in years:
+        for m in magnets:
+            complete_path = f"{path}_{y}_{m}{ext}"
+            dfr[f"{y}_{m}"] = load_dataframe(complete_path, tree_name, variables, method=method)
+            dfr_tot = dfr_tot.append(dfr[f"{y}_{m}"])
     
-    else:
-        for y in years:
-            for m in magnets:
-                complete_path = f"{path}_{y}_{m}{ext}"
-                dfr[f"{y}_{m}"] = load_dataframe(complete_path, tree_name, variables, method=method)
-                dfr_tot = dfr_tot.append(dfr[f"{y}_{m}"])
-        if cut_DeltaM:
-            #print('cut on Delta_M')
-            dfr_tot = apply_cut_DeltaM(dfr_tot)
-        
-        if cut_PIDK == 'PID': # NB: cut the PID after adding the BDT branch :)
-            #print('cut on PIDK')
-            dfr_tot = apply_cut_PIDK(dfr_tot)
-        elif cut_PIDK == 'ALL':
-            #print('cut on all PIDK')
-            dfr_tot = apply_cut_allPIDK(dfr_tot)
-        
-        if cut_tau_Ds:
-            dfr_tot = apply_cut_tau_Ds(dfr_tot)
-        
-        if mode_BDT:
-            dfr_tot['BDT'] = read_root(loc.OUT+f'tmp/{type_data}/BDT_{name_BDT}.root', 'BDT', columns=['BDT'])
-        if mode_sWeight: 
-            dfr_tot = dfr_tot.reset_index()
-            dfr_tot['sWeight'] = read_root(loc.OUT+f'root/{type_data}/common_B0toDstDs_sWeights.root', 'sWeights', columns=['sig'])
+    # CUTS --------------------
+    if cut_DeltaM:
+        #print('cut on Delta_M')
+        dfr_tot = apply_cut_DeltaM(dfr_tot)
+    if cut_PIDK == 'PID': # NB: cut the PID after adding the BDT branch :)
+        #print('cut on PIDK')
+        dfr_tot = apply_cut_PIDK(dfr_tot)
+    elif cut_PIDK == 'ALL':
+        #print('cut on all PIDK')
+        dfr_tot = apply_cut_allPIDK(dfr_tot)
+    if cut_tau_Ds:
+        dfr_tot = apply_cut_tau_Ds(dfr_tot)
+    if mode_BDT:
+        dfr_tot['BDT'] = read_root(loc.OUT+f'tmp/{type_data}/BDT_{name_BDT}.root', 'BDT', columns=['BDT'])
     
     dfr_tot = dfr_tot.reset_index()
     return dfr_tot
@@ -417,4 +412,8 @@ def retrieve_pickle(name_data):
     with open(f'{loc.OUT}/pickle/{name_data}.pickle','br') as file:
         data = pickle.load(file)
     return data
+    
+
+
+    
     

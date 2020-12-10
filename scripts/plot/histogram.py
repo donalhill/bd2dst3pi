@@ -4,7 +4,9 @@ import numpy as np
 from matplotlib.colors import LogNorm #matplotlib.colors.LogNorm()
 
 from . import tool as pt
+from load_save_data import add_in_dic
 
+#Gives us nice LaTeX fonts in the plots
 #Gives us nice LaTeX fonts in the plots
 from matplotlib import rc, rcParams
 rc('font',**{'family':'serif','serif':['Roman']})
@@ -14,6 +16,7 @@ rcParams['axes.unicode_minus'] = False
 #################################################################################################
 ################################ subfunctions for plotting ######################################
 ################################################################################################# 
+
 
 
 def plot_hist_alone(ax, data, n_bins, low, high, color, mode_hist, alpha = 1, 
@@ -176,7 +179,8 @@ def set_label_divided_hist(ax, name_variable, unit_variable, bin_width, names_da
 def plot_hist(dfs, variable, name_variable=None, unit_variable=None, n_bins=100, mode_hist=False, 
               low=None, high=None, density=None, 
               title=None, name_data_title=False,  
-              name_file=None,name_folder=None,colors=None, weights=None, save_fig=True):
+              name_file=None,name_folder=None,colors=None, weights=None, save_fig=True,
+              pos_text_LHC=None, ymax=None, show_leg=None):
     """ Save the histogram(s) of variable of the data given in dfs
     
     @dfs             :: Dictionnary {name of the dataframe : pandas dataframe, ...}
@@ -236,8 +240,12 @@ def plot_hist(dfs, variable, name_variable=None, unit_variable=None, n_bins=100,
               
               
     #Some plot style stuff
+    if ymax is None:
+        ymax=1+0.15*len(name_datas)
+    if show_leg is None:
+        show_leg = len(dfs)>1
     set_label_hist(ax, name_variable, unit_variable, bin_width, density=density, fontsize=25)
-    pt.fix_plot(ax, ymax=1+0.15*len(name_datas), show_leg=len(dfs)>1)
+    pt.fix_plot(ax, ymax=ymax, show_leg=show_leg, pos_text_LHC=pos_text_LHC)
     
     #Remove any space not needed around the plot
     plt.tight_layout()
@@ -248,8 +256,8 @@ def plot_hist(dfs, variable, name_variable=None, unit_variable=None, n_bins=100,
     
     
 def plot_divide(dfs, variable, name_variable,unit_variable, n_bins=100, low=None, high=None, 
-                name_data_title=False,
-                name_file=None, name_folder=None, save_fig=True):
+                name_data_title=False, name_file=None, name_folder=None, save_fig=True,
+                pos_text_LHC=None):
     """
     plot the (histogram of the dataframe 1 of variable)/(histogram of the dataframe 1 of variable) after normalisation
         
@@ -297,7 +305,7 @@ def plot_divide(dfs, variable, name_variable,unit_variable, n_bins=100, low=None
     ax.plot([low,high], [1.,1.], linestyle='--', color='b',marker='')
     
     # Set lower and upper range of the x and y axes
-    pt.fix_plot(ax, ymax=1.1, show_leg=False, fontsize_ticks=20., ymin_to0=False)
+    pt.fix_plot(ax, ymax=1.1, show_leg=False, fontsize_ticks=20., ymin_to0=False, pos_text_LHC=pos_text_LHC)
     
     # Labels
     set_label_divided_hist(ax, name_variable, unit_variable, bin_width, names_data, fontsize=25)    
@@ -321,7 +329,7 @@ def plot_hist2d(df, variables, name_variables, unit_variables, n_bins = 100,
                 title=None, name_data_title=False, 
                 name_file=None, name_folder=None,
                 name_data=None, log_scale=False,
-               save_fig=True):
+               save_fig=True, pos_text_LHC=None):
     '''  Plot a 2D histogram of 2 variables.
     @df                :: dataframe (only one)
     @variables         :: list of 2 str, variables in the dataframe
@@ -369,6 +377,8 @@ def plot_hist2d(df, variables, name_variables, unit_variables, n_bins = 100,
     
     ## Label, color bar
     pt.set_label_ticks(ax)
+    pt.set_text_LHCb(ax, pos = pos_text_LHC)
+    
     set_label_2Dhist(ax, name_variables, unit_variables, fontsize=25)
     cbar = plt.colorbar(h)
     cbar.ax.tick_params(labelsize=20)
@@ -409,13 +419,13 @@ def plot_hist_particle(dfs, variable, cut_BDT=None, **kwargs):
     name_variable, unit_var = pt.get_name_unit_particule_var(variable)
     name_datas = pt.list_into_string(list(dfs.keys()))
     
-    pt.add_in_dic('name_file', kwargs)
-    pt.add_in_dic('title', kwargs)
+    add_in_dic('name_file', kwargs)
+    add_in_dic('title', kwargs)
     kwargs['name_file'], kwargs['title'] = pt.get_name_file_title_BDT(kwargs['name_file'], kwargs['title'], 
                                                                    cut_BDT, variable, name_datas)
 
     # Name of the folder = list of the names of the data
-    pt.add_in_dic('name_folder', kwargs)
+    add_in_dic('name_folder', kwargs)
     if kwargs['name_folder'] is None:
         name_folder = name_datas
     
@@ -437,7 +447,7 @@ def plot_divide_particle(dfs, variable, **kwargs):
     """
     name_variable, unit_var = pt.get_name_unit_particule_var(variable)
     
-    pt.add_in_dic('name_folder', kwargs)
+    add_in_dic('name_folder', kwargs)
     if kwargs['name_folder'] is None:
         kwargs['name_folder'] = pt.list_into_string(list(dfs.keys()))
         
@@ -461,8 +471,8 @@ def plot_hist2d_particle(df, variables, **kwargs):
     for i in range(2):
         name_variables[i], unit_vars[i] = pt.get_name_unit_particule_var(variables[i])
     
-    pt.add_in_dic('name_folder', kwargs)
-    pt.add_in_dic('name_data', kwargs)
+    add_in_dic('name_folder', kwargs)
+    add_in_dic('name_data', kwargs)
     
     if kwargs['name_folder'] is None :
         kwargs['name_folder'] = kwargs['name_data']

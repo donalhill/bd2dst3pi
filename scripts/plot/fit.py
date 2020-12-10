@@ -1,5 +1,6 @@
 from . import tool as pt
 from .histogram import plot_hist_alone, set_label_hist
+from load_save_data import add_in_dic
 
 from zfit.core.parameter import ComposedParameter
 from zfit.core.parameter import Parameter as SimpleParameter
@@ -50,6 +51,49 @@ def frac_model(x, model, frac=None):
 
         return (model.pdf(x)*frac).numpy()
 
+### number of degrees of freedom =============================
+
+def get_n_dof_params_seen(results, n_dof=0):
+    n_dof += results[0]
+    params_seen = results[1]
+    return n_dof, params_seen
+
+def count_n_dof_params_recurs(params, params_seen=[]):
+    n_dof = 0
+    for param in params.values():
+        name_param = param.name
+        if name_param not in params_seen :
+            params_seen.append(name_param)
+            if isinstance(param, ComposedParameter):
+                n_dof, params_seen = get_n_dof_params_seen(
+                    count_n_dof_params_recurs(param.params, params_seen), n_dof)
+            else:
+                if param.floating:
+                    n_dof+=1
+    return n_dof, params_seen
+
+def count_n_dof_model_recurs(model, params_seen=[]):
+    n_dof = 0
+    
+    # Explore the parameters of model
+    n_dof, params_seen = get_n_dof_params_seen(
+        count_n_dof_params_recurs(model.params, params_seen), n_dof)
+
+    
+    
+    # Explore the parameters of the submodels of model
+    if isinstance(model, SumPDF):
+        for submodel in model.models:
+            n_dof, params_seen = get_n_dof_params_seen(
+                count_n_dof_model_recurs(submodel, params_seen), n_dof)
+    
+    return n_dof, params_seen
+
+def count_n_dof_model(model):
+    n_dof, _ = count_n_dof_model_recurs(model, params_seen=[])
+    return n_dof
+
+
 def get_chi2(fit_counts, counts):
     """ chi2 of the fit
     
@@ -60,11 +104,14 @@ def get_chi2(fit_counts, counts):
     """
     diff = np.square(fit_counts-counts)
     
-    n_bins = len(counts)
+    #n_bins = len(counts)
     diff = np.divide(diff,counts,out=np.zeros_like(diff), where=counts!=0)
-    chi2 = np.sum(diff)/n_bins # sigma_i^2 = mu_i
+    chi2 = np.sum(diff) # sigma_i^2 = mu_i
     return chi2
 
+def reduced_chi2(fit_counts, counts, ndof):
+    n_bins = len(counts)
+    return get_chi2(fit_counts, counts)/(n_bins - ndof)
 
 #################################################################################################
 #################################### Sub-plotting functions #####################################
@@ -113,9 +160,12 @@ def plot_pull_diagram(ax, model, counts, centres, err, low=None, high=None,
     #ax[1].grid()
     ax.set_xlim([low,high]) 
     
+    ndof = count_n_dof_model(model)
+    print("Number of d.o.f. in the model: ", ndof)
+    chi2 = reduced_chi2(fit, counts, ndof)
+    print('Reduced chi2: ', chi2)
     if show_chi2:
-        chi2 = get_chi2(fit, counts)
-        ax.set_title(f'($\\chi^2$={chi2:.2f})', fontsize=fontsize)
+        ax.set_xlabel(f'(reduced $\\chi^2$={chi2:.2f})', fontsize=fontsize)
     
 def plot_fitted_curve(ax, model, plot_scaling, frac=None, line_width=2.5,
                       color='b',linestyle='-', low=None, high=None, label=None, x=None, alpha=1):
@@ -317,7 +367,7 @@ def plot_models(ax, x, models, plot_scaling, type_models, name_models=None,
 
 def plot_fitted_curves(ax, models, plot_scaling, low, high, name_models=None, type_models=None,
                        line_width=2.5, colors=['b', 'g', 'gold', 'magenta', 'orange'], 
-                       fontsize_legend=16, loc_leg='upper left'):
+                       fontsize_legend=16, loc_leg='upper left', show_legend=None):
     """
     Plot fitted curve given by 'models', with labels given by name_models
     
@@ -330,7 +380,8 @@ def plot_fitted_curves(ax, models, plot_scaling, low, high, name_models=None, ty
     @fontsize      :: fontsize of the legend
     """
     models = pt.el_to_list(models, 1)
-    show_legend = name_models is not None
+    if show_legend is None:
+        show_legend = name_models is not None
     name_models = pt.el_to_list(name_models, len(models))
 
     x = np.linspace(low, high, 1000)
@@ -408,7 +459,7 @@ def plot_hist_fit (df, variable, name_var=None, unit_var=None,models=None, obs=N
                   name_file=None,name_folder=None,name_data=None, show_chi2=False,
                   params=None,name_params=None, colWidths=[0.04,0.01,0.06,0.06], fontsize_res=20.,
                   loc_res='upper right', loc_leg='upper left',
-                  weights=None):
+                  weights=None, save_fig=True, pos_text_LHC=None, show_leg=None):
     """ Plot complete histogram with fitted curve, pull histogram and results of the fits, save it in plots/
     @df            :: pandas dataframe that contains all the variables, including 'variable'
     @variable      :: name of the variable to plot and fit
@@ -439,7 +490,9 @@ def plot_hist_fit (df, variable, name_var=None, unit_var=None,models=None, obs=N
     fontsize_res   :: float, fontsize of the text in the result table
     @loc_res       :: str position of the result table, loc argument specified in in plt.table 
     @loc_leg       :: str position of the legend, loc argument specified by loc in plt.legend
-    @weights       :: weights passed to plt.hist        
+    @weights       :: weights passed to plt.hist  
+    
+    @returns       :: fig, axs
     """
     ## Create figure
     fig = plt.figure(figsize=(12,10))
@@ -470,6 +523,7 @@ def plot_hist_fit (df, variable, name_var=None, unit_var=None,models=None, obs=N
     
     # Ticks
     pt.set_label_ticks(ax[0])
+    pt.set_text_LHCb(ax[0], pos=pos_text_LHC)
     
     ## Plot fitted curve 
     if isinstance(models,list):
@@ -480,7 +534,7 @@ def plot_hist_fit (df, variable, name_var=None, unit_var=None,models=None, obs=N
         
     plot_scaling = get_plot_scaling(counts, obs, n_bins)
     plot_fitted_curves(ax[0], models, plot_scaling, low, high, name_models=name_models, type_models=type_models,
-                       line_width=2.5, colors=colors, fontsize_legend=fontsize_leg, loc_leg=loc_leg)
+                       line_width=2.5, colors=colors, fontsize_legend=fontsize_leg, loc_leg=loc_leg, show_legend=show_leg)
     
     pt.change_ymax(ax[0], factor=1.1)
     
@@ -495,8 +549,11 @@ def plot_hist_fit (df, variable, name_var=None, unit_var=None,models=None, obs=N
     
     # Save result
     plt.tight_layout()
-    plt.show()  
-    pt.save_file(fig, name_file,name_folder,f'{variable}_{name_data}_fit')
+    plt.show()
+    if save_fig:
+        pt.save_file(fig, name_file,name_folder,f'{variable}_{name_data}_fit')
+    
+    return fig, ax[0], ax[1]
     
 #################################################################################################
 ##################################### Automatic label plots #####################################
@@ -511,6 +568,8 @@ def plot_hist_fit_particle(df, variable, cut_BDT=None, **kwargs):
     @df       :: dataframe
     @variable :: str, variable (for instance: 'B0_M'), in dataframe
     @kwargs   :: arguments passed in plot_hist_fit (except variable, name_var, unit_var
+    
+    @returns  :: fig, axs
     """
     
     ## Retrieve particle name, and variable name and unit.
@@ -524,9 +583,9 @@ def plot_hist_fit_particle(df, variable, cut_BDT=None, **kwargs):
     
     name_variable, unit_var = pt.get_name_unit_particule_var(variable)
        
-    pt.add_in_dic('name_file', kwargs)
-    pt.add_in_dic('title', kwargs)
-    pt.add_in_dic('name_data', kwargs)
+    add_in_dic('name_file', kwargs)
+    add_in_dic('title', kwargs)
+    add_in_dic('name_data', kwargs)
     # Title and name of the file with BDT    
     kwargs['name_file'], kwargs['title'] = pt.get_name_file_title_BDT(kwargs['name_file'], kwargs['title'], cut_BDT, 
                                                                        variable, pt.add_text(kwargs['name_data'],
@@ -534,9 +593,9 @@ def plot_hist_fit_particle(df, variable, cut_BDT=None, **kwargs):
     
     
     # Name of the folder = name of the data
-    pt.add_in_dic('name_folder', kwargs)
-    pt.add_in_dic('name_data', kwargs)
+    add_in_dic('name_folder', kwargs)
+    add_in_dic('name_data', kwargs)
     if kwargs['name_folder'] is None and kwargs['name_data'] is not None:
         kwargs['name_folder'] = kwargs['name_data']
     
-    plot_hist_fit(df, variable, name_var=name_variable, unit_var=unit_var, **kwargs)
+    return plot_hist_fit(df, variable, name_var=name_variable, unit_var=unit_var, **kwargs)
