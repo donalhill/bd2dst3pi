@@ -1,3 +1,12 @@
+"""
+Anthony Correia
+02/01/21
+- Save a plot
+- Some functions to change how the plot looks (grid, logscale, label of the ticks, text ['LHCb preliminary']
+- Functions which, from the root variable name, gets the unit, name of the variable and particle (from variable.py)
+    which is used for the label/legend of the plots in plot/histogram.py, plot/fit.py and plot/line.py
+"""
+
 from bd2dst3pi.locations import loc
 
 import numpy as np
@@ -7,7 +16,8 @@ import os.path as op
 from os import makedirs
 
 from variables import variables_params, particle_names
-from load_save_data import create_directory
+from load_save_data import create_directory, add_in_dic
+from copy import deepcopy
 
 
 
@@ -30,8 +40,6 @@ def remove_space(text):
         return None
 
 # SAVING FIGURE ================================================
-
-
 
 def save_file(fig, name_file,name_folder=None, alt_name_file=None, directory=f"{loc.PLOTS}/"):
     """ Save fig in a file, in {directory}/{name_folder}/{name_file or alt_name_file}.pdf
@@ -94,7 +102,7 @@ def get_bin_width(low,high,n_bins):
     """return bin width"""
     return float((high-low)/n_bins)
 
-def el_to_list(el,len_list):
+def el_to_list(el, len_list):
     """ If el is not a list, return a list of size len_list of this element duplicated
     
     @el       :: element
@@ -236,7 +244,9 @@ def show_grid(ax, which='major'):
 
 def change_ymax(ax, factor=1.1, ymin_to0=True):
     """ multiple ymax of the plot by factor
-    @factor    :: float
+    @ax        :: axis where to plot
+    @factor    :: float, factor by which ymax is multiplied
+    @ymin_to0  :: bool, if True, ymin is set at 0
     """
     ymin, ymax = ax.get_ylim()
     if ymin_to0:
@@ -255,7 +265,9 @@ def fix_plot(ax, ymax=1.1, show_leg=True, fontsize_ticks=20., fontsize_leg=20., 
     @ymax            :: float, multiplicative factor of ymax
     @show_leg        :: Bool, True if show legend
     @fontsize_ticks  :: float, fontsize of the ticks
-    @fontsize_leg    :: fontsize of the legend
+    @fontsize_leg    :: int, fontsize of the legend
+    @ymin_to0        :: bool, if True, ymin = 0
+    pos_text_LHC     :: pos, passed to set_text_LHCb 
     """
     
     if ymax is not None:
@@ -268,15 +280,43 @@ def fix_plot(ax, ymax=1.1, show_leg=True, fontsize_ticks=20., fontsize_leg=20., 
     set_text_LHCb(ax, pos=pos_text_LHC)
 
 def set_log_scale(ax, axis='both'):
-    """Set label ticks to size given by labelsize"""
+    """Set label ticks to size given by labelsize
+    @ax    :: axis where to change the scale into a log one
+    @axis  :: 'both, 'x' or 'y', axis with a log scale
+    """
     if axis == 'both' or axis == 'x':
         ax.set_xscale('log')
     if axis == 'both' or axis == 'y':
         ax.set_yscale('log')
 
-def set_text_LHCb(ax, text='LHCb preliminary \n 2 ${fb}^{-1}$', fontsize=25., pos=None):
+def set_text_LHCb(ax, text='LHCb preliminary \n 2 fb$^{-1}$', fontsize=25., pos=None):
+    """ Put a text on a plot 
+    
+    @ax       :: axis where to plot
+    @text     :: str, text to plot
+    @fontsize :: float, fontsize of the text
+    @pos      ::
+    
+    @returns  :: the text element that plt.text return
+    """
     if pos is not None:
-        if isinstance(pos, str):
+        info = deepcopy(pos)
+        if isinstance(pos, dict):
+            ha = info['ha']
+            if ha=='left' :
+                x = 0.02 if 'x' not in info else info['x']
+                y = 0.95 if 'y' not in info else info['y']
+            elif ha=='right':
+                x = 0.98 if 'x' not in info else info['x']
+                y = 0.95 if 'y' not in info else info['y']
+            
+            add_in_dic('fontsize', pos, fontsize)
+            add_in_dic('text', pos, text)
+            
+            fontsize = pos['fontsize']
+            text = pos['text']
+            
+        elif isinstance(pos, str):
             if pos=='left':
                 x = 0.02
                 y = 0.95
@@ -289,9 +329,10 @@ def set_text_LHCb(ax, text='LHCb preliminary \n 2 ${fb}^{-1}$', fontsize=25., po
             x = pos[0]
             y = pos[1]
             ha = pos[2]
-            
-        ax.text(x, y, text, verticalalignment='top', horizontalalignment=ha, 
-                transform=ax.transAxes, fontsize=fontsize)
+    
+        return ax.text(x, y, text, verticalalignment='top', horizontalalignment=ha, 
+                    transform=ax.transAxes, fontsize=fontsize)
+
     
     
 #################################################################################################

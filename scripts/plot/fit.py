@@ -1,5 +1,14 @@
-from . import tool as pt
-from .histogram import plot_hist_alone, set_label_hist
+"""
+Anthony Correia
+02/01/21
+- Compute the number of d.o.f. of a model
+- Compute the reduced chi2 of a model
+- plot the pull diagram ot a fit
+- plot the histogram, with the fitted PDF and the fitted parameters
+"""
+
+import plot.tool as pt
+from plot.histogram import plot_hist_alone, set_label_hist
 from load_save_data import add_in_dic
 
 from zfit.core.parameter import ComposedParameter
@@ -9,6 +18,8 @@ from zfit.models.functor import SumPDF
 #from zfit.core.parameter import Parameter
 
 import numpy as np
+
+from pandas import DataFrame
 
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -419,6 +430,11 @@ def plot_result_fit(ax, params, name_params=None, fontsize=20, colWidths=[0.06,0
         
         name_param = p.name
         
+        # if name_param as ';', remove everything from ';' onwards
+        index = name_param.find(';')
+        if index!=-1:
+            name_param = name_param[:index]
+        
         # if name_params not None, it specifies the variables we want to show
         if (name_params is None) or (name_param in name_params): 
             # Retrieve value and error
@@ -494,6 +510,7 @@ def plot_hist_fit (df, variable, name_var=None, unit_var=None,models=None, obs=N
     
     @returns       :: fig, axs
     """
+    
     ## Create figure
     fig = plt.figure(figsize=(12,10))
     gs = gridspec.GridSpec(2,1,height_ratios=[3,1])
@@ -538,8 +555,9 @@ def plot_hist_fit (df, variable, name_var=None, unit_var=None,models=None, obs=N
     
     pt.change_ymax(ax[0], factor=1.1)
     
+    color_pull = colors if not isinstance(colors, list) else colors[0]
     ## Plot pull histogram
-    plot_pull_diagram(ax[1], model, counts, centres, err, 
+    plot_pull_diagram(ax[1], model, counts, centres, err, color=color_pull,
                       low=low, high=high, plot_scaling=plot_scaling, show_chi2=show_chi2)
     
     
@@ -549,12 +567,24 @@ def plot_hist_fit (df, variable, name_var=None, unit_var=None,models=None, obs=N
     
     # Save result
     plt.tight_layout()
-    plt.show()
     if save_fig:
         pt.save_file(fig, name_file,name_folder,f'{variable}_{name_data}_fit')
-    
     return fig, ax[0], ax[1]
+
+def plot_hist_fit_var (data, variable, name_var=None, unit_var=None, **kwargs):
+    ''' plot data with his fit
+    @data      :: pandas Series or numpy ndarray
+    @name_data :: str, name of the data
+    @kwargs    :: parameters passed to plot_hist_fit
+    '''
+    df = DataFrame()
+    df[variable] = data
     
+    return plot_hist_fit(df, variable, name_var, unit_var, **kwargs) 
+    
+
+
+
 #################################################################################################
 ##################################### Automatic label plots #####################################
 #################################################################################################  

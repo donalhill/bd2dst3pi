@@ -1,0 +1,9 @@
+              precision    recall  f1-score   support
+
+  background       0.86      0.84      0.85      9134
+      signal       0.88      0.89      0.89     11935
+
+    accuracy                           0.87     21069
+   macro avg       0.87      0.87      0.87     21069
+weighted avg       0.87      0.87      0.87     21069
+Area under ROC curve: 0.9396

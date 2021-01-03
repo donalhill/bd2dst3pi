@@ -1,9 +1,21 @@
+"""
+Anthony Correia
+02/01/21
+- Plot histograms
+- Plot 2D histograms
+- Plot histograms of the quotient of 2 variables
+"""
+
+
 import matplotlib.pyplot as plt
 import numpy as np
+from pandas import DataFrame
+from pandas.core.series import Series
+
 
 from matplotlib.colors import LogNorm #matplotlib.colors.LogNorm()
 
-from . import tool as pt
+import plot.tool as pt
 from load_save_data import add_in_dic
 
 #Gives us nice LaTeX fonts in the plots
@@ -12,6 +24,8 @@ from matplotlib import rc, rcParams
 rc('font',**{'family':'serif','serif':['Roman']})
 rc('text', usetex=True)
 rcParams['axes.unicode_minus'] = False
+
+
 
 #################################################################################################
 ################################ subfunctions for plotting ######################################
@@ -56,7 +70,7 @@ def plot_hist_alone(ax, data, n_bins, low, high, color, mode_hist, alpha = 1,
             label = ""
         else:
             label += ": "
-        label += f" {n_candidates}"
+        label += f" {n_candidates} events"
         
     if density:
         counts = counts/(n_candidates*bin_width)
@@ -178,9 +192,9 @@ def set_label_divided_hist(ax, name_variable, unit_variable, bin_width, names_da
 
 def plot_hist(dfs, variable, name_variable=None, unit_variable=None, n_bins=100, mode_hist=False, 
               low=None, high=None, density=None, 
-              title=None, name_data_title=False,  
+              title=None, name_data_title=False, label_ncounts=True,
               name_file=None,name_folder=None,colors=None, weights=None, save_fig=True,
-              pos_text_LHC=None, ymax=None, show_leg=None):
+              pos_text_LHC=None, ymax=None, show_leg=None, alpha=None):
     """ Save the histogram(s) of variable of the data given in dfs
     
     @dfs             :: Dictionnary {name of the dataframe : pandas dataframe, ...}
@@ -200,6 +214,7 @@ def plot_hist(dfs, variable, name_variable=None, unit_variable=None, n_bins=100,
                             dataframe in dfs
     @weights         :: weights passed to plt.hist 
     @save_fig        :: Bool, specifies is the figure is saved
+    @alpha           :: transparancy of the histograms
     
     @returns         :: fig, ax
     """
@@ -233,9 +248,10 @@ def plot_hist(dfs, variable, name_variable=None, unit_variable=None, n_bins=100,
     
     k_col = 0
     for name_data, df in dfs.items():
-        alpha = 0.5 if len(dfs)>1 else 1
+        if alpha is None:
+            alpha = 0.5 if len(dfs)>1 else 1
         _,_,_,_ = plot_hist_alone(ax, df[variable], n_bins, low, high, colors[k_col], mode_hist, alpha = alpha, 
-                        density = density, label = name_data, label_ncounts = True, weights=weights)
+                        density = density, label = name_data, label_ncounts=label_ncounts, weights=weights)
         k_col += 1
               
               
@@ -253,10 +269,36 @@ def plot_hist(dfs, variable, name_variable=None, unit_variable=None, n_bins=100,
     if save_fig:
         pt.save_file(fig, name_file,name_folder,f'{variable}_{pt.list_into_string(name_datas)}')
     return fig, ax
+
     
+def plot_hist_var (datas, variable, name_variable=None, unit_variable=None, name_datas=None, **kwargs):
+    ''' plot the histogram(s) of data
     
+    @datas      :: data or list of data (data = list of float)
+    @variable   :: str, name of the variable (for the name of the saved file)
+    @name_datas :: str or list of str, name of the datas
+    @kwargs     :: passed to plot_hist
+    @returns    :: fig, ax
+    
+    '''
+    
+    # data into list of data
+    if not isinstance(datas[0], np.ndarray) and not isinstance(datas[0], Series):
+        datas = [datas]
+        
+    name_datas = pt.el_to_list(name_datas, len(datas))
+    assert len(name_datas) == len(datas)
+    
+    dfs = {}
+    for data, name_data in zip(datas, name_datas):
+        df = DataFrame()
+        df[variable] = np.array(data)
+        dfs[name_data] = df
+    
+    return plot_hist(dfs, variable, name_variable=name_variable, unit_variable=unit_variable, **kwargs)   
+
 def plot_divide(dfs, variable, name_variable,unit_variable, n_bins=100, low=None, high=None, 
-                name_data_title=False, name_file=None, name_folder=None, save_fig=True,
+                name_file=None, name_folder=None, save_fig=True,
                 pos_text_LHC=None):
     """
     plot the (histogram of the dataframe 1 of variable)/(histogram of the dataframe 1 of variable) after normalisation
@@ -269,7 +311,6 @@ def plot_divide(dfs, variable, name_variable,unit_variable, n_bins=100, low=None
     @n_bins          :: Desired number of bins of the histogram
     @low             :: low value of the distribution
     @high            :: high value of the distribution
-    @name_data_title :: Bool, if true, show the name of the data in the title
     @name_file       :: name of the plot that will be saved
     @name_folder     :: name of the folder where to save the plot
     @save_fig        :: Bool, specifies is the figure is saved
@@ -326,7 +367,7 @@ def plot_divide(dfs, variable, name_variable,unit_variable, n_bins=100, low=None
 
 def plot_hist2d(df, variables, name_variables, unit_variables, n_bins = 100,
                 low=None, high=None, 
-                title=None, name_data_title=False, 
+                title=None, 
                 name_file=None, name_folder=None,
                 name_data=None, log_scale=False,
                save_fig=True, pos_text_LHC=None):
@@ -339,7 +380,6 @@ def plot_hist2d(df, variables, name_variables, unit_variables, n_bins = 100,
     @low               :: float or list of 2 floats ; low  value(s) of variables
     @high              :: float or list of 2 floats ; high value(s) of variables
     @title             :: str, title of the figure
-    @name_data_title   :: Bool, if true, show the name of the data in the title
     
     @name_file         :: name of the plot that will be saved
     @name_folder       :: name of the folder where to save the plot

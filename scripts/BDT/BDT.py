@@ -1,11 +1,11 @@
 """
 Anthony Correia
-08/12/20
+02/01/21
 - Plot the trained variables in the signal vs background sample
 - Prepare the signal and background sample (merge them, create a 'y' variable for learning, ...
 - Train the BDT with the specified classifier (adaboost or gradientboosting)
-- Plot the result of the tests (ROC curve, overtraining check)
-- Save the result
+- Plot the result of the tests (ROC curve, overtraining check with KS test)
+- Apply the BDT to the data and save the result
 """
 
 
@@ -32,6 +32,9 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier
 from sklearn.metrics import classification_report, roc_auc_score, roc_curve, auc
 from sklearn.model_selection import train_test_split
+
+from scipy.stats import ks_2samp
+ 
 
 import os.path as op
 from os import makedirs
@@ -377,13 +380,19 @@ def compare_train_test(clf, X_train, y_train, X_test, y_test, bins=30, name_BDT=
     """
     fig, ax = plt.subplots(figsize=(8,6))
     
-    ## decisions = [d(X_train_background), d(X_train_signal),d(X_test_background), d(X_test_signal)]
+    ## decisions = [d(X_train_signal), d(X_train_background),d(X_test_signal), d(X_test_background)]
     decisions = []
     for X,y in ((X_train, y_train), (X_test, y_test)):
         d1 = clf.decision_function(X[y>0.5]).ravel()
         d2 = clf.decision_function(X[y<0.5]).ravel()
-        decisions += [d1, d2] # [background, signal]
+        decisions += [d1, d2] # [signal, background]
     
+    '''
+    decisions[0]: train, background
+    decisions[1]: train, signal
+    decisions[2]: test, background
+    decisions[3]: test, signal
+    '''
     
     ## Range of the full plot
     low = min(np.min(d) for d in decisions)
@@ -430,9 +439,12 @@ def compare_train_test(clf, X_train, y_train, X_test, y_test, bins=30, name_BDT=
     name_file = pt.add_text('overtraining', name_BDT, '_')
     pt.save_file(fig, name_file, name_folder= f'BDT/{name_folder}')
     
-    return fig, ax
-
-from root_numpy import array2root
+    ks_2samp_bkg = ks_2samp(decisions[0],decisions[2]).statistic
+    ks_2samp_sig = ks_2samp(decisions[1],decisions[3]).statistic
+    print('Kolmogorov-Smirnov statistic')
+    print(f"signal    : {ks_2samp_sig}")
+    print(f"Background: {ks_2samp_bkg}")    
+    return fig, ax, ks_2samp_sig, ks_2samp_bkg
 
 def apply_BDT(df_tot, df_train, bdt,name_BDT="", save_BDT=False, kind_data='common'):
     """ 

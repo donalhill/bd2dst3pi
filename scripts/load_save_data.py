@@ -1,6 +1,26 @@
+"""
+Anthony Correia
+02/01/21
+- Create directories
+- Add a key-value couple to a dictionnary if the key is not in the dictionnary
+- Apply cuts the a Pandas dataframe (on DeltaM, tau_M, PIDK)
+- Add some variables inside a dataframe (fight distance of the 3pi system, Ds-constrained invariant mass)
+- Load a dataframe
+- Load a saved root file
+- Save a Pandas dataframe into a root file
+- Dump/retrieve a pickle File
+- Save a json file
+- format the name of the parameters
+- Retrieve a json file
+- get a json latex table from parameters that are saved in a json file
+
+"""
+
 from root_pandas import read_root
 
 import pickle
+import json
+from uncertainties import ufloat
 
 from bd2dst3pi.locations import loc
 from bd2dst3pi.definitions import years as all_years
@@ -79,7 +99,7 @@ def show_dictionnary(dic, name_dic):
 
 def apply_cut_DeltaM(df):
     """Cut on DeltaM: 143 < DeltaM < 148
-    
+    # DeltaM = Dst_M - D0_M
     @df      :: pandas dataframe
     
     @returns :: df cut on DeltaM
@@ -243,7 +263,10 @@ def load_saved_root(name_data, vars=None, name_folder="", tree_name=None, cut_BD
     
     text_cut_BDT = "" if cut_BDT is None else f'_BDT{cut_BDT}'
     if tree_name is None:
-        tree_name = v.data_tree_names[name_data]
+        if tree_name in v.data_tree_names:
+            tree_name = v.data_tree_names[name_data]
+        else:
+            tree_name = 'DecayTree'
     complete_path = f"{loc.OUT}/root/{name_folder}/{name_data}{text_cut_BDT}.root"
     return load_dataframe(complete_path, tree_name, vars, method=method)
     
@@ -257,23 +280,25 @@ def load_data(years=None, magnets=None, type_data='common', vars=None, method='r
     
     @years      :: list of the wanted years
     @magnets    :: list of the wanted magnets
-    @type_data  :: desired data: 'MC', 'data', 'data_strip' or 'ws_strip' or 'data_KPiPi' or 'common'
-    @vars       :: desired variables
-    @method     :: method to retrieve the data ('read_root' or 'uproot')
+    @type_data  :: str, desired data: 'MC', 'data', 'data_strip' or 'ws_strip' or 'data_KPiPi' or 'common'
+    @vars       :: list of str, desired variables
+    @method     :: str, method to retrieve the data ('read_root' or 'uproot')
                         read_root is faster
-    @name_BDT   :: if BDT is one of the variable to retrieve (i.e., BDT in vars)
+    @name_BDT   :: str, if BDT is one of the variable to retrieve (i.e., BDT in vars)
                     this is the str that indicates in which root file 
                     the 'BDT' variable is:
                         '{loc.OUT}/tmp/BDT_{name_BDT}.root'
-    @cut_deltaM :: if true (or if BDT is in vars), perform a cut on DeltaM
+    @cut_deltaM :: Bool, if true (or if BDT is in vars), perform a cut on DeltaM
                         143 < DeltaM < 148
-    @cut_PIDK   :: if 'PID', cut out the events with tau_pion_ID < 4 if tau_pion and Dst_PID has an opposite charge
+    @cut_PIDK   :: Bool, if 'PID', cut out the events with tau_pion_ID < 4 if tau_pion and Dst_PID has an opposite charge
                    if 'ALL', cut out all the events with tau_pion_ID < 4
+    @cut_tau_Ds :: Bool, if true, cut on tau_M around the mass of the Ds meson
     
-    @returns    :: df with the desired variables for all specified the years and magnets
+    @returns    :: Pandas df with the desired variables for all specified the years and magnets
     """
     assert type_data in ['MC', 'data_strip', 'data', 'common', 'ws_strip', 'data_KPiPi']
     mode_BDT = False
+    only_one_file = False
     
     variables = deepcopy(vars)
     if 'BDT' in variables:
@@ -350,12 +375,14 @@ def load_data(years=None, magnets=None, type_data='common', vars=None, method='r
     dfr = {}
     dfr_tot = pd.DataFrame()      
     
-    for y in years:
-        for m in magnets:
-            complete_path = f"{path}_{y}_{m}{ext}"
-            dfr[f"{y}_{m}"] = load_dataframe(complete_path, tree_name, variables, method=method)
-            dfr_tot = dfr_tot.append(dfr[f"{y}_{m}"])
-    
+    if only_one_file:
+        dfr_tot = load_dataframe(complete_path, tree_name, vars, method=method)
+    else:
+        for y in years:
+            for m in magnets:
+                complete_path = f"{path}_{y}_{m}{ext}"
+                dfr[f"{y}_{m}"] = load_dataframe(complete_path, tree_name, variables, method=method)
+                dfr_tot = dfr_tot.append(dfr[f"{y}_{m}"])
     # CUTS --------------------
     if cut_DeltaM:
         #print('cut on Delta_M')
@@ -390,7 +417,7 @@ def save_dataframe(df, name_file, name_key, name_folder=None):
 
 
 #################################################################################################
-###################################### PICKLE functions #########################################
+#################################### PICKLE/JSON functions ######################################
 ################################################################################################# 
 
 def dump_pickle(data, name_data):
@@ -412,8 +439,140 @@ def retrieve_pickle(name_data):
     with open(f'{loc.OUT}/pickle/{name_data}.pickle','br') as file:
         data = pickle.load(file)
     return data
+
+def save_json(dic, name_data, name_folder=None):
+    """
+    @dic         :: dict, to save in the json file
+    @name_data   :: str, name of the json file
+    @name_folder :: str, name of the folder where the json file is saved
+                        if None: no folder
     
+    Save dic in a json file in {loc.JSON}/{name_folder}/{name_data}.json
+    """
+    directory = create_directory(loc.JSON, name_folder)
+    path = f"{directory}/{name_data}_params.json"
+    
+    with open(path,'w') as f:
+        json.dump(dic, f, sort_keys = True, indent = 4)
+    print(f"parameters saved in {path}")
+    
+#################################################################################################
+######################################## FIT functions ##########################################
+################################################################################################# 
+
+def format_previous_params(df_params, retrieve_err=False):
+    """ Remove the element in the dictionnary that ends with '_err'.
+    For the other ones, removes what is after | in the keys.
+    In particular: variable|BDT-0.2 will become variable
+    
+    @df_params_recup  :: dataframe with the result of the file 
+                            this is the df saved in .json after the fit.
+                            * {'alphaL': value, 'alphaL_err': value ...}
+                            or
+                            * {'alphaL|BDT-0.5': value, 'alphaL|BDT-0.5'_err': value ...}
+    @retrieve_err     :: bool, if True, include the error of the variables in the file
+                            
+    @returns          :: new dataframe
+    """
+    
+    df_params_formatted = {}
+    for key, value in df_params.items():
+        index = key.find('|')
+        if index==-1:
+            index = None
+        variable = key[:index]
+        if key.endswith('_err') and retrieve_err:
+            if not variable.endswith('_err'):
+                variable+='_err'
+            
+        if not key.endswith('_err') or retrieve_err:
+            df_params_formatted[variable] = value
+    return df_params_formatted
+
+def retrieve_params(name_data, name_folder=None):
+    """ retrieve the content of a json file
+    @name_data   :: str, name of the fit
+    @name_folder :: str, name of folder where the json file is
+                        (if None, there is no folder)
+    
+    @return      :: dictionnary that contains the variables stored in the json file
+                        in {loc.JSON}/{name_folder}/{name_data}_params.json
+    """
+    directory = create_directory(loc.JSON, name_folder)
+    path = f"{directory}/{name_data}_params.json"
+    
+    with open(path,'r') as f:
+        params = json.load(f)
+    
+    return params
 
 
+def get_list_without_err(params):
+    """ get the list of variables from the list of fitted parameters
+    @params   :: dict, fitted parameters {'alphaL': value, 'alphaL_err': value ...}
+    @returns  :: list of variables (remove the keys with '_err')
+    """
+    keys = list(params.keys())
+    variables = []
+    for key in keys:
+        if not key.endswith('_err'):
+            variables.append(key)
+    return variables
+
+def json_to_latex_table(name_json, path, name_params, show=True):
+    """ transform a json file that contains the fitted parameters and uncertainties into a latex table
+    @name_json     :: str, name of the json file
+    @path          :: str, path of the json file compared to loc.JSON
+    @name_params   :: str, alternative name of the parameters (in latex)
+    @show          :: bool, if True, shows the content of the created latex table code
+    """
     
+    # Open the json file
+    directory = create_directory(loc.JSON, path)
+    with open(f'{directory}/{name_json}_params.json', 'r') as f:
+        params = json.load(f)
+    params = format_previous_params(params, True)
+    # Load the variables into ufloats
+    variables = get_list_without_err(params)
+    ufloats = {}
+    for variable in variables:
+        if f'{variable}_err' in params:
+            ufloats[variable] = ufloat(params[variable], params[f"{variable}_err"])
+    
+    # Write the .tex file
+    directory = create_directory(loc.TABLES, path)
+    file_path = f'{directory}/{name_json}_params.tex'
+    with open(file_path, 'w') as f:
+        f.write('\\begin{tabular}[t]{lc}')
+        f.write('\n')
+        f.write('\\hline')
+        f.write('\n')
+        f.write('Variable &Fitted Value\\\\')
+        f.write('\n')
+        f.write('\\hline\\hline')
+        f.write('\n')
+        
+        for variable, value in ufloats.items():
+            formatted_value = f'{value:.2u}'.replace('+/-','\pm').replace('e+0','\\times 10^')
+            name_var = name_params[variable]
+            f.write(f"{name_var}&${formatted_value}$\\\\")
+            f.write('\n')
+            f.write('\\hline')
+            f.write('\n')
+        f.write("\\end{tabular}")
+    if show:
+        show_latex_table(name_json, path)
+        
+def show_latex_table(name, path):
+    """ Print the latex table that contains the result of a fit. It must have been already generated, with json_to_latex_table. 
+    @name  :: name of the fit which we want to get the latex table with its result
+    @path  :: path of the .tex file from loc.TABLES, where the .tex file is
+    
+    print the content of the tex file in {loc.TABLES}/{path}/{name}_params.tex
+    """
+    directory = create_directory(loc.TABLES, path)
+    file_path = f'{directory}/{name}_params.tex'
+    print(file_path)
+    with open(file_path, 'r') as f:
+        print(f.read())
     

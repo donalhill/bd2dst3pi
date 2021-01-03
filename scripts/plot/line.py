@@ -1,3 +1,10 @@
+"""
+Anthony Correia
+02/01/21
+- plot x vs y
+- plot x vs y1, y2, y3, ... (several curves with the same x)
+"""
+
 from . import tool as pt
 
 from uncertainties import unumpy
@@ -64,7 +71,7 @@ def add_value_labels(ax, lx, ly, labels, space_x=-10, space_y=5, labelsize=12):
 #################################################################################################  
 
 def plot_xys (ax, x, ly, xlabel, labels=None, colors=['b','g','r','y'], fontsize=25, markersize=1,
-             linewidth=2.5, linestyle='-', factor_ymax=1.,
+             linewidth=1., linestyle='-', factor_ymax=1.,
               annotations=None, fontsize_annot=15., space_x=-15, space_y=5, pos_text_LHC=None):
     """
     @ax               :: axis where to plot
@@ -123,7 +130,7 @@ def plot_xys (ax, x, ly, xlabel, labels=None, colors=['b','g','r','y'], fontsize
 
 def plot_x_list_ys(x, y, name_x, names_y, surname_x=None, surnames_y=None, 
                    annotations=None, markersize=1,
-                   linewidth=2.5,fontsize=25, name_file=None, name_folder=None,
+                   linewidth=1.,fontsize=25, name_file=None, name_folder=None,
                    factor_ymax=1., linestyle='-', fontsize_annot=15.,
                    space_x=-15, space_y=5, log_scale=None, save_fig=True, pos_text_LHC=None):
     """ plot x as a function of the y of the list l_y
@@ -179,6 +186,6 @@ def plot_x_list_ys(x, y, name_x, names_y, surname_x=None, surnames_y=None,
     plt.tight_layout()
     plt.show()
     if save_fig:
-        pt.save_file(fig, name_file, name_folder, f'{surname_x}_vs_{pt.list_into_string(pt.flattenlist2D(names_y))}')
+        pt.save_file(fig, name_file, name_folder, f'{name_x}_vs_{pt.list_into_string(pt.flattenlist2D(names_y))}')
     
     return fig, axs
