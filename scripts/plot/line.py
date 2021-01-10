@@ -17,6 +17,8 @@ rc('font',**{'family':'serif','serif':['Roman']})
 rc('text', usetex=True)
 rcParams['axes.unicode_minus'] = False
 
+from load_save_data import el_to_list
+
 
 #################################################################################################
 ######################################## Tool function ##########################################
@@ -71,7 +73,7 @@ def add_value_labels(ax, lx, ly, labels, space_x=-10, space_y=5, labelsize=12):
 #################################################################################################  
 
 def plot_xys (ax, x, ly, xlabel, labels=None, colors=['b','g','r','y'], fontsize=25, markersize=1,
-             linewidth=1., linestyle='-', factor_ymax=1.,
+             linewidth=1., linestyle='-', factor_ymax=1., marker='.', elinewidth=None,
               annotations=None, fontsize_annot=15., space_x=-15, space_y=5, pos_text_LHC=None):
     """
     @ax               :: axis where to plot
@@ -90,7 +92,7 @@ def plot_xys (ax, x, ly, xlabel, labels=None, colors=['b','g','r','y'], fontsize
     @space_x          :: float, space in pixel from the point to the annotation text, projected in the x-axis
     @space_y          :: float, space in pixel from the point to the annotation text, projected in the y-axis
     """
-    colors = pt.el_to_list(colors, len(ly))
+    colors = el_to_list(colors, len(ly))
     
     plot_legend = False
     
@@ -103,8 +105,8 @@ def plot_xys (ax, x, ly, xlabel, labels=None, colors=['b','g','r','y'], fontsize
         ax.errorbar(x_n, y_n, 
                     xerr = unumpy.std_devs(x), yerr=unumpy.std_devs(y), 
                     linestyle=linestyle, color=colors[i], 
-                    markersize=markersize, elinewidth=markersize,
-                    linewidth=linewidth, label=label, marker='.')
+                    markersize=markersize, elinewidth=elinewidth,
+                    linewidth=linewidth, label=label, marker=marker)
         
         if label is not None:
             plot_legend = True
@@ -129,7 +131,7 @@ def plot_xys (ax, x, ly, xlabel, labels=None, colors=['b','g','r','y'], fontsize
         add_value_labels(ax, x_n, y_n, annotations, labelsize=fontsize_annot, space_x=space_x, space_y=space_y)
 
 def plot_x_list_ys(x, y, name_x, names_y, surname_x=None, surnames_y=None, 
-                   annotations=None, markersize=1,
+                   annotations=None, markersize=1, elinewidth=None, marker='.',
                    linewidth=1.,fontsize=25, name_file=None, name_folder=None,
                    factor_ymax=1., linestyle='-', fontsize_annot=15.,
                    space_x=-15, space_y=5, log_scale=None, save_fig=True, pos_text_LHC=None):
@@ -176,7 +178,7 @@ def plot_x_list_ys(x, y, name_x, names_y, surname_x=None, surnames_y=None,
         
         # In the same groups_ly, we plot the curves in the same plot
         plot_xys (ax, x, ly, xlabel=name_x, labels=groups_surnames_y[k], 
-                  annotations=annotations, markersize=markersize,
+                  annotations=annotations, markersize=markersize, elinewidth=elinewidth, marker=marker,
                   fontsize=fontsize, linewidth=linewidth, linestyle=linestyle, factor_ymax=factor_ymax,
                   fontsize_annot=fontsize_annot, space_x=space_x, space_y=space_y, pos_text_LHC=pos_text_LHC)
         

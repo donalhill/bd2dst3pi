@@ -59,7 +59,7 @@ def signal_background(data1, data2, column=None,range_column=None, grid=True,
                       sharex=False,
                       sharey=False, figsize=None,
                       layout=None, n_bins=40,name_file=None,
-                      name_folder=None, **kwds):
+                      name_folder=None, colors=['red', 'green'], **kwds):
     """Draw histogram of the DataFrame's series comparing the distribution
     in `data1` to `data2`.
     
@@ -122,9 +122,9 @@ def signal_background(data1, data2, column=None,range_column=None, grid=True,
             high = range_column[i][1]
         
         low, high = pt.redefine_low_high(range_column[i][0], range_column[i][1], [data1[col], data2[col]]) 
-        _,_,_,_ = h.plot_hist_alone(ax, data1[col].dropna().values, n_bins, low, high, 'r', mode_hist=True, alpha=0.5, 
+        _,_,_,_ = h.plot_hist_alone(ax, data1[col].dropna().values, n_bins, low, high, colors[1], mode_hist=True, alpha=0.5, 
                         density=True, label='background', label_ncounts = True)
-        _,_,_,_ = h.plot_hist_alone(ax, data2[col].dropna().values, n_bins, low, high, 'g', mode_hist=True, alpha=0.5, 
+        _,_,_,_ = h.plot_hist_alone(ax, data2[col].dropna().values, n_bins, low, high, colors[0], mode_hist=True, alpha=0.5, 
                         density=True, label='signal', label_ncounts = True)
         
         bin_width=(high - low)/n_bins
@@ -198,6 +198,9 @@ def correlations(data, name_file=None,name_folder=None, title=None, **kwds):
 ################################################################################################# 
 
 ## DATA PROCESSING ------------------------------------------------------
+
+    
+
 def concatenate(dfa_tot_sig, dfa_tot_bkg):
     """
     @dfa_tot    :: dictionnary of dataframes, with
@@ -228,7 +231,70 @@ def bg_sig(y):
     """Return the mask to get the background and the signal (in this order)"""
     return (y<0.5),(y>0.5)
 
-def BDT(X,y, classifier='adaboost', **hyperparams):
+def get_train_test(X, y, test_size=0.5, random_state=15):
+    # Separate train/test data
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
+    return X_train, X_test, y_train, y_test
+
+def get_train_test_df(df, test_size=0.5, random_state=15):
+    # Separate train/test data
+    df_train, df_test = train_test_split(df, test_size=test_size, random_state=random_state)
+    return df_train, df_test
+
+
+def BDT(X_train, y_train, classifier='adaboost', **hyperparams):
+    """ Train the BDT and return the result
+    
+    @X               :: numpy ndarray,  with signal and background concatenated,
+                          The columns of X correspond to the variable the BDT will be trained with
+    @y               :: numpy array, 1 if the concatened event is signal, 0 if it is background
+    @classifier      :: str, specified the used classifier
+        - 'adaboost'
+        - 'gradientboosting'
+        - 'xgboost' (experimental)
+    @hyperparameters :: dict, used hyperparameters. default:
+                                    * n_estimators = 800
+                                    * learning_rate = 0.1
+    @returns ::
+       - X_train and y_train: numpy ndarray and numpy array, which the BDT was trained with
+       - X_test  and y_test : numpy ndarray and numpy array, left data that might be used for testing
+       - bdt                : trained BDT
+    """
+    
+    
+    
+    weights = compute_sample_weight(class_weight='balanced', y=y_train)
+    
+    if hyperparams is None:
+        hyperparams = {}
+    
+    l.add_in_dic('n_estimators', hyperparams, 800)
+    l.add_in_dic('learning_rate', hyperparams, 0.1) # Learning rate shrinks the contribution of each tree by alpha    
+    l.show_dictionnary(hyperparams, "hyperparameters")
+            
+    
+    # Define the BDT
+    if classifier == 'adaboost':
+        dt = DecisionTreeClassifier(max_depth=3, min_samples_leaf=0.05)
+        # The minimum number of samples required to be at a leaf node
+        # here, since it's a float, it is expressed in fraction of len(X_train)
+        # We need min_samples_leaf samples before deciding to create a new leaf
+        bdt = AdaBoostClassifier(dt, algorithm='SAMME', verbose=1, **hyperparams)
+        
+    elif classifier == 'gradientboosting':
+        bdt = GradientBoostingClassifier(max_depth=1, min_samples_split=2, verbose=1, random_state=15, **hyperparams)
+    
+    elif classifier == 'xgboost': # experimental
+        import xgboost as xgb
+        bdt = xgb.XGBClassifier(objective="binary:logistic", random_state=15, verbose=1, learning_rate=0.1)
+        
+        
+    ## Learning (fit)
+    bdt.fit(X_train, y_train, sample_weight=weights)
+    
+    return bdt
+
+def previous_BDT(X,y, classifier='adaboost', **hyperparams):
     """ Train the BDT and return the result
     
     @X               :: numpy ndarray,  with signal and background concatenated,
@@ -281,11 +347,12 @@ def BDT(X,y, classifier='adaboost', **hyperparams):
     
     return X_train, y_train, X_test, y_test, bdt
 
+
 #################################################################################################
 ################################### Analysis BDT training #######################################
 ################################################################################################# 
 
-def classification_report_print(X_test, y_test, bdt,name_BDT=""):
+def classification_report_print(X_test, y_test, bdt, name_BDT=""):
     """ 
     Test the bdt training with the testing sample.
     Print and save the report in {loc.TABLES}/BDT/classification_report{name_BDT}.txt
@@ -364,7 +431,8 @@ def plot_roc(X_test, y_test, bdt,name_BDT = "",name_folder = None):
     
     return fig, ax
 
-def compare_train_test(clf, X_train, y_train, X_test, y_test, bins=30, name_BDT="",name_folder=None):
+def compare_train_test(clf, X_train, y_train, X_test, y_test, bins=30, name_BDT="", name_folder=None,
+                      colors=['red', 'green']):
     """ Plot and save the overtraining plot in {loc.PLOTS}/BDT/{name_folder}/overtraining_{name_BDT}.pdf
     
     @clf           :: trained BDT
@@ -402,11 +470,11 @@ def compare_train_test(clf, X_train, y_train, X_test, y_test, bins=30, name_BDT=
     
     ## Plot for the train data the stepfilled histogram of background (y<0.5) and signal (y>0.5) 
     ax.hist(decisions[0],
-             color='g', alpha=0.5, range=low_high, bins=bins,
+             color=colors[0], alpha=0.5, range=low_high, bins=bins,
              histtype='stepfilled', density=True,
              label='S (train)')
     ax.hist(decisions[1],
-             color='r', alpha=0.5, range=low_high, bins=bins,
+             color=colors[1], alpha=0.5, range=low_high, bins=bins,
              histtype='stepfilled', density=True,
              label='B (train)')
 
@@ -419,7 +487,7 @@ def compare_train_test(clf, X_train, y_train, X_test, y_test, bins=30, name_BDT=
     
     width = (bins[1] - bins[0])
     center = (bins[:-1] + bins[1:]) / 2
-    ax.errorbar(center, hist, yerr=err, fmt='o', c='g', label='S (test)')
+    ax.errorbar(center, hist, yerr=err, fmt='o', c=colors[0], label='S (test)')
     
     hist, bins = np.histogram(decisions[3],
                               bins=bins, range=low_high, density=True)
@@ -427,7 +495,7 @@ def compare_train_test(clf, X_train, y_train, X_test, y_test, bins=30, name_BDT=
     scale = len(decisions[2]) / sum(hist)
     err = np.sqrt(hist * scale) / scale
 
-    ax.errorbar(center, hist, yerr=err, fmt='o', c='r', label='B (test)')
+    ax.errorbar(center, hist, yerr=err, fmt='o', c=colors[1], label='B (test)')
 
     ax.set_xlabel("BDT output", fontsize=25.)
     ax.set_ylabel("Arbitrary units", fontsize=25.)

@@ -15,8 +15,8 @@ from pandas.core.series import Series
 import os.path as op
 from os import makedirs
 
-from variables import variables_params, particle_names
-from load_save_data import create_directory, add_in_dic
+from variables import variables_params, particle_names, functions, name_variables_functions
+from load_save_data import create_directory, add_in_dic, el_to_list
 from copy import deepcopy
 
 
@@ -56,7 +56,7 @@ def save_file(fig, name_file,name_folder=None, alt_name_file=None, directory=f"{
     if name_file is None:
         name_file = alt_name_file
 
-    name_file = remove_space(remove_latex(name_file))
+    name_file = remove_space(remove_latex(name_file)).replace('/','d')
     path = op.join(directory, f"{name_file}")
     #Save the plot as a PDF document into our PLOTS folder (output/plots as defined in bd2dst3pi/locations.py)
     fig.savefig(path + '.pdf', dpi=600, bbox_inches="tight")
@@ -102,20 +102,6 @@ def get_bin_width(low,high,n_bins):
     """return bin width"""
     return float((high-low)/n_bins)
 
-def el_to_list(el, len_list):
-    """ If el is not a list, return a list of size len_list of this element duplicated
-    
-    @el       :: element
-    @len_list :: integer, size of the list (if el is not a list)
-    
-    @returns ::
-          * If el is a list: el
-          * Else           : list of size len_list: [el, el, ...]
-    """
-    if not isinstance(el,list):
-        return [el for i in range(len_list)]
-    else:
-        return el
 
 ### Texy formatting -------------------------------------------------------------------
 
@@ -235,12 +221,12 @@ def add_text(text1,text2, sep = ' ', default=None):
         return text1 + sep + text2
     
 ### Core of the plot -------------------------------------------------------------------
-def show_grid(ax, which='major'):
+def show_grid(ax, which='major', axis='both'):
     """show grid
     @ax    :: axis where to show the grid
     which  :: 'major' or 'minor'
     """
-    ax.grid(b=True, which=which, color='#666666', linestyle='-', alpha = 0.2)
+    ax.grid(b=True, axis=axis, which=which, color='#666666', linestyle='-', alpha = 0.2)
 
 def change_ymax(ax, factor=1.1, ymin_to0=True):
     """ multiple ymax of the plot by factor
@@ -259,7 +245,7 @@ def set_label_ticks(ax, labelsize=20):
     ax.tick_params(axis='both', which='both', labelsize=20)
 
 
-def fix_plot(ax, ymax=1.1, show_leg=True, fontsize_ticks=20., fontsize_leg=20., ymin_to0=True, pos_text_LHC=None):
+def fix_plot(ax, ymax=1.1, show_leg=True, fontsize_ticks=20., fontsize_leg=20., loc_leg='best', ymin_to0=True, pos_text_LHC=None):
     """ Some fixing of the parameters (fontsize, ymax, legend)
     @ax              :: axis where to plot
     @ymax            :: float, multiplicative factor of ymax
@@ -275,7 +261,7 @@ def fix_plot(ax, ymax=1.1, show_leg=True, fontsize_ticks=20., fontsize_leg=20., 
     
     set_label_ticks(ax)
     if show_leg:
-        ax.legend(fontsize = fontsize_leg)
+        ax.legend(fontsize = fontsize_leg, loc=loc_leg)
     
     set_text_LHCb(ax, pos=pos_text_LHC)
 
@@ -339,7 +325,6 @@ def set_text_LHCb(ax, text='LHCb preliminary \n 2 fb$^{-1}$', fontsize=25., pos=
 ##################################### Automatic label plots #####################################
 #################################################################################################         
 
-
 def retrieve_particle_variable(variable):
     '''
     Retrieve the name of the particle and of the variable from 'variable'
@@ -351,33 +336,41 @@ def retrieve_particle_variable(variable):
     
     Hypothesis: the particle is in the dictionnary particle_names in variables.py
     '''
-
+    
     list_particles = list(particle_names.keys())
+    
+    ## Get the name of the particle and deduce the name of the var
     particle = variable
     marker = None
     marker_before = 0
     
+    # We must have: variable = particle_var
+    # As long as particle is not in the list of the name of particles
+    # get the next '_' (starting from the end)
+    # cut variable in before '_' and after '_'
+    # What is before should be the name of the variable
+    # unless we need to select the next '_' to get the name of the particle
+    # because this '_' is part of the name of the var
     while particle not in list_particles and marker != marker_before:
         marker_before = marker
         cut_variable = variable[:marker]
         marker = len(cut_variable)-1-cut_variable[::-1].find('_') # find the last '_'
         particle = variable[:marker]
-        
+    
+    # if there were a '_' in variable, we assume the separation was done
     if marker != marker_before:
         var = variable[marker+1:]
         return particle, var
+    
+    # if we did not find a particle and var
     else:
         return None, None
 
-def get_name_unit_particule_var(variable):
-    """ return the name of particle, and the name and unit of the variable
-    @variable   :: str, variable (for instance: 'B0_M')
-    
-    @returns    ::
-                    - str, name of the variable (for instance, 'm($D^{*-}3\pi$)')
-                    - str, unit of the variable (for instance, 'MeV/$c^2$')
-    """
-    particle, var = retrieve_particle_variable(variable)
+def get_name_unit_from_particle_var(particle, var, variable):
+    '''
+    @particle :: str/None, name of the particle
+    @var      :: str/None, name of the variable
+    '''
     if particle is not None and var is not None:
         if particle in particle_names:
             name_particle = particle_names[particle]
@@ -399,7 +392,87 @@ def get_name_unit_particule_var(variable):
     else:
         name_variable = variable
         unit_var = None
-    return name_variable, unit_var 
+    
+    return name_variable, unit_var
+
+def get_name_unit_particule_var(variable):
+    """ return the name of particle, and the name and unit of the variable
+    @variable   :: str, variable (for instance: 'B0_M')
+    
+    @returns    ::
+                    - str, name of the variable (for instance, 'm($D^{*-}3\pi$)')
+                    - str, unit of the variable (for instance, 'MeV/$c^2$')
+    """
+    
+    # If the variable is expressed in a function, there must be a ':'
+    index_underscore = variable.find(':')
+    variable_with_function = (index_underscore != -1)
+    
+    
+    if variable_with_function:
+        
+        full_variable = variable
+        variable = full_variable[:index_underscore]
+        name_function = full_variable[index_underscore+1:]
+        
+        ## GET ALL THE VARIABLES ==============================================================
+        no_comma = False
+        variables = [variable]
+        while not no_comma:
+            variable = variables[-1]
+            index_comma = variable.find(',')
+            no_comma = (index_comma==-1)
+            if not no_comma: # if there is a comma, it means there is more than 1 variable
+                variables[-1] = variable[:index_comma]
+                variables.append(variable[index_comma+1:])
+        
+        ## FOR ALL THE VARS, SEPARATE PARTICLE AND VAR ========================================
+        particles = [None]*len(variables)
+        varis = [None]*len(variables)
+        all_particles_same = True # True if there is only one variable
+        for i, variable in enumerate(variables):
+            particles[i], varis[i] =  retrieve_particle_variable(variables[i])
+            # check if all the particles are the same
+            if i > 0:
+                all_particles_same = all_particles_same and (particles[i] == particles[i-1])
+        
+        
+        ## IF THE PARTICLE ARE THE SAME, CHECK IF var1,var2:function HAS A SURNAME ============
+        if all_particles_same:
+            
+            particle = particles[0]
+            var = list_into_string(varis, ',') + ':' + name_function
+
+            # at this stage:
+            # var = var1,var2:function
+            all_particles_same = (var in variables_params)
+            if all_particles_same:
+                name_variable, unit_var = get_name_unit_from_particle_var(particle, var, variable)
+            
+        # all_particles_same = False is the var cannot be found in the list of known variables
+        # or if the particles aren't the same
+        
+        ## IF THE PARTICLES AREN'T THE SAME ================================================
+        if not all_particles_same:
+            if name_function in name_variables_functions:
+                var = name_variables_functions[name_function](variables)
+                
+            else:
+                name_variables = [None]*len(varis)
+                for i in range(len(varis)):
+                    name_variables[i], _ = get_name_unit_from_particle_var(particles[i], varis[i], variable)
+                variables_text = list_into_string(name_variables, ' and the ')
+                if variables_text[0] != '$' and variables_text[1].islower(): 
+                    #if not '$' at the beg, and the 2nd character is not in upper case (ex: 'DIRA angle')
+                    variables_text = variables_text[0].lower() + variables_text[1:]
+                name_variable = f"${name_function}$" + ' of the ' + variables_text
+                unit_var = None
+        
+    if not variable_with_function:
+        particle, var = retrieve_particle_variable(variable)
+        name_variable, unit_var = get_name_unit_from_particle_var(particle, var, variable)
+    
+    return name_variable, unit_var
 
 def get_name_file_title_BDT(name_file, title, cut_BDT, variable, name_data):
     """ Return the new name_file and title given the cut on the BDT 
@@ -414,7 +487,7 @@ def get_name_file_title_BDT(name_file, title, cut_BDT, variable, name_data):
                     - new title
     """
     if name_file is None:
-        name_file = add_text(variable,name_data,'_')
+        name_file = add_text(variable, name_data, '_')
     
     # Title with BDT
     if cut_BDT is not None:

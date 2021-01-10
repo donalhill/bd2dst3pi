@@ -9,7 +9,7 @@ Anthony Correia
 
 import plot.tool as pt
 from plot.histogram import plot_hist_alone, set_label_hist
-from load_save_data import add_in_dic
+from load_save_data import add_in_dic, el_to_list
 
 from zfit.core.parameter import ComposedParameter
 from zfit.core.parameter import Parameter as SimpleParameter
@@ -23,6 +23,8 @@ from pandas import DataFrame
 
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+from matplotlib.ticker import MultipleLocator
+import matplotlib.ticker as ticker
 
 #Gives us nice LaTeX fonts in the plots
 from matplotlib import rc, rcParams
@@ -38,9 +40,9 @@ rcParams['axes.unicode_minus'] = False
 
 ### Computation ===============================================
 
-def get_plot_scaling(counts, obs, n_bins):
+def get_plot_scaling(counts, low, high, n_bins):
     """Return plot_scaling, the factor to scale the curve fit to unormalised histogram"""
-    return counts.sum() * obs.area() / n_bins 
+    return counts.sum() *(high-low) / n_bins 
     
 
 def frac_model(x, model, frac=None):
@@ -129,7 +131,7 @@ def reduced_chi2(fit_counts, counts, ndof):
 #################################################################################################
     
     
-def plot_pull_diagram(ax, model, counts, centres, err, low=None, high=None, 
+def plot_pull_diagram(ax, model, counts, centres, err, low=None, high=None, line=3,
                       plot_scaling=None, fontsize=25, color='b', color_lines='r', show_chi2=False):
     """
     Plot pull diagram of 'model' compared to the data given by (counts, centres)
@@ -160,15 +162,26 @@ def plot_pull_diagram(ax, model, counts, centres, err, low=None, high=None,
     
     ## Plotting
     ax.errorbar(centres,pull, yerr = np.ones(len(centres)),color =color, ls='', marker='.')
-    ax.plot([low,high],[2,2],color='r',ls='--')
-    ax.plot([low,high],[-2,-2],color='r',ls='--')
+    ax.plot([low,high],[line, line],color='r',ls='--')
+    ax.plot([low,high],[-line, -line],color='r',ls='--')
     ax.plot([low,high],[0,0],color='r')
+    
+    ## Symmetric pull diagram
+    low_y, high_y = ax.get_ylim() 
+    maxi = max(4., -low_y, high_y) 
+    low_y = -maxi
+    high_y = maxi
+    
+    ax.set_ylim([low_y, high_y])
     
     ## Label and ticks
     ax.set_ylabel('residuals / $\\sigma$', fontsize=fontsize)
     ax.tick_params(axis='both', which='major', labelsize=20)
-    ax.set_yticks([-2,0,2])
-    #ax[1].grid()
+    ax.yaxis.set_major_locator(MultipleLocator(3.))
+    ax.yaxis.set_minor_locator(MultipleLocator(1.))
+    
+    pt.show_grid(ax, which='minor', axis='y')
+    
     ax.set_xlim([low,high]) 
     
     ndof = count_n_dof_model(model)
@@ -377,7 +390,7 @@ def plot_models(ax, x, models, plot_scaling, type_models, name_models=None,
     
 
 def plot_fitted_curves(ax, models, plot_scaling, low, high, name_models=None, type_models=None,
-                       line_width=2.5, colors=['b', 'g', 'gold', 'magenta', 'orange'], 
+                       line_width=2.5, colors=['b', 'g', 'gold', 'magenta', 'orange'],
                        fontsize_legend=16, loc_leg='upper left', show_legend=None):
     """
     Plot fitted curve given by 'models', with labels given by name_models
@@ -390,10 +403,10 @@ def plot_fitted_curves(ax, models, plot_scaling, low, high, name_models=None, ty
     @name_models, type_models, line_width, colors passed to plot_models
     @fontsize      :: fontsize of the legend
     """
-    models = pt.el_to_list(models, 1)
+    models = el_to_list(models, 1)
     if show_legend is None:
         show_legend = name_models is not None
-    name_models = pt.el_to_list(name_models, len(models))
+    name_models = el_to_list(name_models, len(models))
 
     x = np.linspace(low, high, 1000)
     
@@ -469,13 +482,14 @@ def plot_result_fit(ax, params, name_params=None, fontsize=20, colWidths=[0.06,0
 #################################################################################################   
     
 def plot_hist_fit (df, variable, name_var=None, unit_var=None,models=None, obs=None, n_bins=50, color='black', 
-                  name_models=None, type_models=None,
+                  name_models=None, type_models=None, low_hist=None, high_hist=None,
                   mode_hist=True, linewidth=2.5, colors=None,
                   name_data_title=False, title=None, fontsize_leg=20,
                   name_file=None,name_folder=None,name_data=None, show_chi2=False,
                   params=None,name_params=None, colWidths=[0.04,0.01,0.06,0.06], fontsize_res=20.,
                   loc_res='upper right', loc_leg='upper left',
-                  weights=None, save_fig=True, pos_text_LHC=None, show_leg=None):
+                  weights=None, save_fig=True, pos_text_LHC=None, show_leg=None,
+                  plot_pull=True):
     """ Plot complete histogram with fitted curve, pull histogram and results of the fits, save it in plots/
     @df            :: pandas dataframe that contains all the variables, including 'variable'
     @variable      :: name of the variable to plot and fit
@@ -512,13 +526,23 @@ def plot_hist_fit (df, variable, name_var=None, unit_var=None,models=None, obs=N
     """
     
     ## Create figure
-    fig = plt.figure(figsize=(12,10))
-    gs = gridspec.GridSpec(2,1,height_ratios=[3,1])
-    ax = [plt.subplot(gs[i]) for i in range(2)]
-
+    if plot_pull:
+        fig = plt.figure(figsize=(12,10))
+        gs = gridspec.GridSpec(2,1,height_ratios=[3,1])
+        ax = [plt.subplot(gs[i]) for i in range(2)]
+    else:
+        fig, ax = plt.subplots(figsize=(8,6))
+        ax = [ax]    
+    
+    
     ## Retrieve low,high (of x-axis)
     low = float(obs.limits[0])
     high = float(obs.limits[1])
+    
+    if low_hist is None:
+        low_hist = low
+    if high_hist is None:
+        high_hist = high
     
     if name_var is None:
         name_var = pt.latex_format(variable)
@@ -531,11 +555,11 @@ def plot_hist_fit (df, variable, name_var=None, unit_var=None,models=None, obs=N
     ## plot 1D histogram of data
     # Histogram 
     counts,_,centres,err = plot_hist_alone(ax[0], df[variable], n_bins,
-                                               low, high, color, mode_hist, alpha = 0.1, weights=weights)
+                                               low_hist, high_hist, color, mode_hist, alpha = 0.1, weights=weights)
     
     
     # Label
-    bin_width = pt.get_bin_width(low, high, n_bins)
+    bin_width = pt.get_bin_width(low_hist, high_hist, n_bins)
     set_label_hist(ax[0], name_var, unit_var, bin_width, fontsize=25)
     
     # Ticks
@@ -549,7 +573,7 @@ def plot_hist_fit (df, variable, name_var=None, unit_var=None,models=None, obs=N
         model = models
     
         
-    plot_scaling = get_plot_scaling(counts, obs, n_bins)
+    plot_scaling = get_plot_scaling(counts, low_hist, high_hist, n_bins)
     plot_fitted_curves(ax[0], models, plot_scaling, low, high, name_models=name_models, type_models=type_models,
                        line_width=2.5, colors=colors, fontsize_legend=fontsize_leg, loc_leg=loc_leg, show_legend=show_leg)
     
@@ -557,8 +581,9 @@ def plot_hist_fit (df, variable, name_var=None, unit_var=None,models=None, obs=N
     
     color_pull = colors if not isinstance(colors, list) else colors[0]
     ## Plot pull histogram
-    plot_pull_diagram(ax[1], model, counts, centres, err, color=color_pull,
-                      low=low, high=high, plot_scaling=plot_scaling, show_chi2=show_chi2)
+    if plot_pull:
+        plot_pull_diagram(ax[1], model, counts, centres, err, color=color_pull,
+                          low=low, high=high, plot_scaling=plot_scaling, show_chi2=show_chi2)
     
     
     ## Plot the fitted parameters of the fit
@@ -569,12 +594,18 @@ def plot_hist_fit (df, variable, name_var=None, unit_var=None,models=None, obs=N
     plt.tight_layout()
     if save_fig:
         pt.save_file(fig, name_file,name_folder,f'{variable}_{name_data}_fit')
-    return fig, ax[0], ax[1]
+        
+    if plot_pull:
+        return fig, ax[0], ax[1]
+    else:
+        return fig, ax[0]
 
 def plot_hist_fit_var (data, variable, name_var=None, unit_var=None, **kwargs):
     ''' plot data with his fit
     @data      :: pandas Series or numpy ndarray
-    @name_data :: str, name of the data
+    @variable  :: str, name of the variable, for the name of the file
+    @name_var  :: str, name of the variable, for the label/legend
+    @unit_var  :: str, unit of the variable
     @kwargs    :: parameters passed to plot_hist_fit
     '''
     df = DataFrame()
@@ -618,8 +649,8 @@ def plot_hist_fit_particle(df, variable, cut_BDT=None, **kwargs):
     add_in_dic('name_data', kwargs)
     # Title and name of the file with BDT    
     kwargs['name_file'], kwargs['title'] = pt.get_name_file_title_BDT(kwargs['name_file'], kwargs['title'], cut_BDT, 
-                                                                       variable, pt.add_text(kwargs['name_data'],
-                                                                                              'fit','_',None))
+                                                                      variable, pt.add_text(kwargs['name_data'],
+                                                                                            'fit','_',None))
     
     
     # Name of the folder = name of the data

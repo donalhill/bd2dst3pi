@@ -36,9 +36,26 @@ from copy import deepcopy
 
 import variables as v
 
+
 #################################################################################################
 ######################################## TOOLS function #########################################
 ################################################################################################# 
+
+def el_to_list(el, len_list):
+    """ If el is not a list, return a list of size len_list of this element duplicated
+    
+    @el       :: element
+    @len_list :: integer, size of the list (if el is not a list)
+    
+    @returns ::
+          * If el is a list: el
+          * Else           : list of size len_list: [el, el, ...]
+    """
+    if not isinstance(el,list):
+        return [el for i in range(len_list)]
+    else:
+        return el
+
 
 def try_makedirs(path):
     """If they don't not exist, create all the necessary directories in the path
@@ -184,6 +201,120 @@ def apply_cut_allPIDK(df, cut=4):
 ##################################### DATAFRAME function ########################################
 ################################################################################################# 
 
+## VARIABLES AND FUNCTION ====================================================
+
+def get_name_var(variable, name_function):
+    """
+    @variable      :: str or list of str, variable or list of variables
+    @name_function :: str, name of the function
+    """
+    if name_function is not None:
+        name_variable = str(variable).replace('(', '').replace(')', '').replace(' ','').replace("'",'')
+        new_variable = name_variable + ':' + name_function
+    
+        return new_variable
+    else:
+        return variable
+
+def get_needed_vars(variables_functions):
+    """
+    @variables_functions ::  list of:
+                                - variable
+                                - tuple (variable, function), where function is the name of the function
+                                - tuple (variables, function), where variables is a tuple of variables,
+                                    input of the function
+    
+    @returns :: list of all the needed variables (that need to loaded)
+    """
+    variables = []
+    for variable_function in variables_functions:
+        if isinstance(variable_function, tuple):
+            variable = variable_function[0]
+        else:
+            variable = variable_function
+        
+        if isinstance(variable, tuple):
+            variables += variable
+        else:
+            variables.append(variable)
+    
+    return variables
+
+def get_real_vars(variables_functions):
+    """
+    @variables_functions ::  list of:
+                                - variable
+                                - tuple (variable, function), where function is the name of the function
+                                - tuple (variables, function), where variables is a tuple of variables,
+                                    input of the function
+    
+    @returns :: list of all the variables
+    """
+    variables = []
+    for variable_function in variables_functions:
+        if isinstance(variable_function, tuple):
+            variable = variable_function[0]
+            name_function = variable_function[1]
+        else:
+            variable = variable_function
+            name_function = None
+        
+        new_variable = get_name_var(variable, name_function)
+        variables.append(new_variable)
+    
+    return variables
+
+def get_df_variables(df, variables_functions, mode='new', functions=v.functions):
+    '''
+    @variables_functions ::  list of:
+                                - variable
+                                - tuple (variable, function), where function is the name of the function
+                                - tuple (variables, function), where variables is a tuple of variables,
+                                    input of the function
+    @df                  :: Pandas dataframe, original dataframe
+    @mode                :: 3 modes:
+                - 'add': add the variables to the dataframe
+                - 'new': create a new dataframe with the new variables only
+                - 'both' : do both
+    
+    @returns :: list of all the variables
+    '''
+    
+    new_df = pd.DataFrame()
+    
+    new_df_required = (mode=='new' or mode=='both')
+    
+    for variable_function in variables_functions:
+        if isinstance(variable_function, tuple):
+            variable = variable_function[0]
+            name_function = variable_function[1]
+        else:
+            variable = variable_function     
+            name_function = None
+                
+        if name_function is None and new_df_required:
+            new_df[variable] = df[variable].values
+        
+        if name_function is not None:
+            new_variable = get_name_var(variable, name_function)
+            
+            if isinstance(variable, tuple) or isinstance(variable, list):
+                data = tuple([df[var] for var in variable])
+            else:
+                data = df[variable]
+            
+            new_data = functions[name_function](data).values
+            
+            if new_df_required:
+                new_df[new_variable] = new_data
+            
+            if mode=='add' or mode=='both':
+                df[new_variable] = new_data
+        
+        
+    if new_df_required:
+        return new_df
+
 ## ADD COLUMNS ===============================================================
 def add_flight_distance_tau(df):
     """
@@ -296,7 +427,7 @@ def load_data(years=None, magnets=None, type_data='common', vars=None, method='r
     
     @returns    :: Pandas df with the desired variables for all specified the years and magnets
     """
-    assert type_data in ['MC', 'data_strip', 'data', 'common', 'ws_strip', 'data_KPiPi']
+    assert type_data in ['MC', 'MCc', 'MCe', 'all_MC', 'data_strip', 'data', 'common', 'ws_strip', 'data_KPiPi']
     mode_BDT = False
     only_one_file = False
     
@@ -313,12 +444,6 @@ def load_data(years=None, magnets=None, type_data='common', vars=None, method='r
     if type_data == 'MC':
         path = f"{loc.MC}/Bd_Dst3pi_11266018"
         ext = '_Sim09e-ReDecay01.root'
-    
-    # Clean data ----------------------------------------
-    elif type_data == 'data':
-        path = f"{loc.DATA}/data_90000000"
-        ext = '.root'
-    
     # MC data -------------------------------------------
     elif type_data == 'MCc':
         path = f"{loc.MC}/Bd_Dst3pi_11266018"
@@ -327,6 +452,14 @@ def load_data(years=None, magnets=None, type_data='common', vars=None, method='r
     elif type_data == 'MCe':
         path = f"{loc.MC}/Bd_Dst3pi_11266018"
         ext = '_Sim09e-ReDecay01.root'
+    elif type_data == 'all_MC':
+        path = f"{loc.MC}/Bd_Dst3pi_11266018"
+        ext = ['_Sim09e-ReDecay01.root', '_Sim09c-ReDecay01.root']
+    
+    # Clean data ----------------------------------------
+    elif type_data == 'data':
+        path = f"{loc.DATA}/data_90000000"
+        ext = '.root'
     
     # new data strip ------------------------------------
     elif type_data == 'common':
@@ -375,14 +508,18 @@ def load_data(years=None, magnets=None, type_data='common', vars=None, method='r
     dfr = {}
     dfr_tot = pd.DataFrame()      
     
+    
+    
     if only_one_file:
         dfr_tot = load_dataframe(complete_path, tree_name, vars, method=method)
     else:
+        ext = el_to_list(ext, 1)
         for y in years:
             for m in magnets:
-                complete_path = f"{path}_{y}_{m}{ext}"
-                dfr[f"{y}_{m}"] = load_dataframe(complete_path, tree_name, variables, method=method)
-                dfr_tot = dfr_tot.append(dfr[f"{y}_{m}"])
+                for e in ext:
+                    complete_path = f"{path}_{y}_{m}{e}"
+                    dfr[f"{y}_{m}"] = load_dataframe(complete_path, tree_name, variables, method=method)
+                    dfr_tot = dfr_tot.append(dfr[f"{y}_{m}"])
     # CUTS --------------------
     if cut_DeltaM:
         #print('cut on Delta_M')
@@ -575,4 +712,6 @@ def show_latex_table(name, path):
     print(file_path)
     with open(file_path, 'r') as f:
         print(f.read())
+        
+
     

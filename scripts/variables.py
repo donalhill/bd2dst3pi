@@ -7,6 +7,7 @@ Some global variables
 - Name of fitted parameters
 """
 
+
 # Mass of the Dst meson
 Dst_M_PDG = 2010.26
 
@@ -57,7 +58,7 @@ variables_params = {
     },
     'flight':
     {
-        'name': "flight distance",
+        'name': "Flight distance",
         'unit': 'mm'
     },
     'TRACK_CHI2NDOF':
@@ -67,7 +68,7 @@ variables_params = {
     },
     'ENDVERTEX_CHI2':
     {
-        'name': '$\\chi^2$ of the endvertex',
+        'name': '$\\chi^2$ of the end vertex',
         'unit': None
     },
     'OWNPV_CHI2':
@@ -80,14 +81,24 @@ variables_params = {
         'name': '$\\chi^2$ of the flight distance',
         'unit': None
     },
+    'FD_OWNPV':
+    {
+        'name': 'Flight distance',
+        'unit': None
+    },
     'IPCHI2_OWNPV':
     {
         'name': '$\\chi^2$ of the impact parameter',
         'unit': None
     },
+    'IP_OWNPV':
+    {
+        'name': 'Impact parameter',
+        'unit': None
+    },
     'DIRA_OWNPV':
     {
-        'name': 'Cosinus of the Dira angle',
+        'name': 'Cosine of the DIRA angle',
         'unit': None
     },
     'M_Tau_Pi12pip':
@@ -95,6 +106,15 @@ variables_params = {
         'name': 'm',
         'unit': 'GeV/$c^2$'
     },
+    'ENDVERTEX_CHI2,ENDVERTEX_NDOF:x/y':{
+        'name': "$\chi^2$ of the end vertex per d.o.f.",
+        'unit': None
+    },
+    'ETA':{
+        'name': "$\\eta$",
+        'unit': None
+    },
+    
     
 }
 
@@ -107,8 +127,24 @@ particle_names = {
     'tau_pion0'     : '$\pi_0$',
     'tau_pion1'     : '$\pi_1$',
     'tau_pion2'     : '$\pi_2$',
-    'Dst_constr_B0' : f'$B^0|m(D_s)$={Dst_M_PDG} MeV/$c^2$'
+    'Dst_constr_B0' : f'$D^*3\pi|m(D_s)$={Dst_M_PDG} MeV/$c^2$',
+    'D0_pion'       : '$\pi$ of $D^0$',
+    'D0_kaon'       : '$K$ from $D^0$',
+    'Dst_pion'      : '$\pi$ from $D^*$'
 }
+
+from numpy import log
+# Name of the functions and functions
+functions = {
+    'ln(1-x)': (lambda x: log(1.-x)),
+    'ln(x)'  : (lambda x: log(x)),
+    'x/y'     : (lambda x: x[0]/x[1]),
+}
+
+name_variables_functions = {
+    'x/y'     : (lambda x: f'$\\frac{x[0]}{x[1]}$')
+}
+
 
 ## NAME OF THE PARTICLES ===================================================
 # used for the saved latex table as well as the table that contains the result of the fit
@@ -170,19 +206,33 @@ name_params_KPiPi = {
 }
 
 # B0 -> D* D_s component
+# name_params_B0toDstDs = {
+#     # Signal
+#     f'mu_B0Ds'      : '$\mu_S$',
+#     f'sigma_B0Ds'   : '$\\sigma_S$',
+#     f'n_sig_B0Ds'   : '$n_S$',
+#     # Combinatorial background
+#     f'n_bkg_B0Ds'   : '$n_{B,c}$',
+#     f'lambda_B0Ds'  : '$\\lambda_{B,c}$',
+#     # Partially reconstructed background
+#     f'mu2_B0Ds'     : '$\\mu_{B, D^* D_s h}$',
+#     f'sigma2_B0Ds'  : '$\\sigma_{B, D^* D_s h}$',
+#     f'n_bkg2_B0Ds'  : '$n_{B, D^* D_s h}$',
+# }
 name_params_B0toDstDs = {
     # Signal
-    f'mu_B0Ds'      : '$\mu_S$',
-    f'sigma_B0Ds'   : '$\\sigma_S$',
-    f'n_sig_B0Ds'   : '$n_S$',
+    f'mu_DstDs'      : '$\mu_S$',
+    f'sigma_DstDs'   : '$\\sigma_S$',
+    f'n_sig_DstDs'   : '$n_S$',
     # Combinatorial background
-    f'n_bkg_B0Ds'   : '$n_{B,c}$',
-    f'lambda_B0Ds'  : '$\\lambda_{B,c}$',
+    f'n_bkg_DstDs'   : '$n_{B,c}$',
+    f'lambda_DstDs'  : '$\\lambda_{B,c}$',
     # Partially reconstructed background
-    f'mu2_B0Ds'     : '$\\mu_{B, D^* D_s h}$',
-    f'sigma2_B0Ds'  : '$\\sigma_{B, D^* D_s h}$',
-    f'n_bkg2_B0Ds'  : '$n_{B, D^* D_s h}$',
+    f'mu2_DstDs'     : '$\\mu_{B, D^* D_s h}$',
+    f'sigma2_DstDs'  : '$\\sigma_{B, D^* D_s h}$',
+    f'n_bkg2_DstDs'  : '$n_{B, D^* D_s h}$',
 }
+
 
 # D_s -> 3pi component
 name_params_tau = {

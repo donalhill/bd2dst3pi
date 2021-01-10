@@ -122,7 +122,7 @@ def check_fit(result):
 ###################################### Fitting functions ########################################
 ################################################################################################# 
   
-def save_params(params,name_data, uncertainty=False, dic_add=None, name_folder=None, remove=None):
+def save_params(params,name_data, uncertainty=True, dic_add=None, name_folder=None, remove=None):
     """ Save the parameters of the fit in {loc.JSON}/{name_data}_params.json
     
     @params        :: Result 'result.params' of the minimisation of the loss function
@@ -155,7 +155,7 @@ def save_params(params,name_data, uncertainty=False, dic_add=None, name_folder=N
         for key, value in dic_add.items():
             param_results[key] = value
     
-    save_json(param_results, name_data, name_folder=directory)
+    save_json(param_results, name_data, name_folder=name_folder)
 
    
     

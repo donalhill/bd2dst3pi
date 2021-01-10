@@ -16,7 +16,7 @@ from pandas.core.series import Series
 from matplotlib.colors import LogNorm #matplotlib.colors.LogNorm()
 
 import plot.tool as pt
-from load_save_data import add_in_dic
+from load_save_data import add_in_dic, el_to_list
 
 #Gives us nice LaTeX fonts in the plots
 #Gives us nice LaTeX fonts in the plots
@@ -58,6 +58,7 @@ def plot_hist_alone(ax, data, n_bins, low, high, color, mode_hist, alpha = 1,
             - centres : centres of the bins
             - err     : Poisson uncertainty on the counts
     '''
+    
     counts,edges = np.histogram(data, range = (low,high), bins=n_bins, weights=weights)
     centres = (edges[:-1] + edges[1:])/2.    
     n_candidates = counts.sum()
@@ -121,7 +122,7 @@ def set_label_candidates_hist (ax, bin_width, pre_label, unit_variable=None, fon
     '''
     
     
-    label = f"{pre_label} / ({bin_width:.1g}{pt.redefine_unit(unit_variable, show_bracket=False)})"
+    label = f"{pre_label} / ({bin_width:.3g}{pt.redefine_unit(unit_variable, show_bracket=False)})"
     if axis == 'x':
         ax.set_xlabel(label, fontsize=fontsize)
     if axis == 'y':
@@ -194,7 +195,7 @@ def plot_hist(dfs, variable, name_variable=None, unit_variable=None, n_bins=100,
               low=None, high=None, density=None, 
               title=None, name_data_title=False, label_ncounts=True,
               name_file=None,name_folder=None,colors=None, weights=None, save_fig=True,
-              pos_text_LHC=None, ymax=None, show_leg=None, alpha=None):
+              pos_text_LHC=None, ymax=None, show_leg=None, loc_leg='best', alpha=None):
     """ Save the histogram(s) of variable of the data given in dfs
     
     @dfs             :: Dictionnary {name of the dataframe : pandas dataframe, ...}
@@ -246,13 +247,15 @@ def plot_hist(dfs, variable, name_variable=None, unit_variable=None, n_bins=100,
     if not isinstance(colors,list):
         colors = [colors]
     
-    k_col = 0
-    for name_data, df in dfs.items():
-        if alpha is None:
-            alpha = 0.5 if len(dfs)>1 else 1
-        _,_,_,_ = plot_hist_alone(ax, df[variable], n_bins, low, high, colors[k_col], mode_hist, alpha = alpha, 
-                        density = density, label = name_data, label_ncounts=label_ncounts, weights=weights)
-        k_col += 1
+    
+    weights = el_to_list(weights,len(dfs))
+    alpha   = el_to_list(alpha  ,len(dfs))
+    
+    for i, (name_data, df) in enumerate(dfs.items()):
+        if alpha[i] is None:
+            alpha[i] = 0.5 if len(dfs)>1 else 1
+        _,_,_,_ = plot_hist_alone(ax, df[variable], n_bins, low, high, colors[i], mode_hist, alpha=alpha[i], 
+                        density = density, label = name_data, label_ncounts=label_ncounts, weights=weights[i])
               
               
     #Some plot style stuff
@@ -261,7 +264,7 @@ def plot_hist(dfs, variable, name_variable=None, unit_variable=None, n_bins=100,
     if show_leg is None:
         show_leg = len(dfs)>1
     set_label_hist(ax, name_variable, unit_variable, bin_width, density=density, fontsize=25)
-    pt.fix_plot(ax, ymax=ymax, show_leg=show_leg, pos_text_LHC=pos_text_LHC)
+    pt.fix_plot(ax, ymax=ymax, show_leg=show_leg, pos_text_LHC=pos_text_LHC, loc_leg=loc_leg)
     
     #Remove any space not needed around the plot
     plt.tight_layout()
@@ -286,7 +289,7 @@ def plot_hist_var (datas, variable, name_variable=None, unit_variable=None, name
     if not isinstance(datas[0], np.ndarray) and not isinstance(datas[0], Series):
         datas = [datas]
         
-    name_datas = pt.el_to_list(name_datas, len(datas))
+    name_datas = el_to_list(name_datas, len(datas))
     assert len(name_datas) == len(datas)
     
     dfs = {}
@@ -360,7 +363,7 @@ def plot_divide(dfs, variable, name_variable,unit_variable, n_bins=100, low=None
 
     #Save the plot as a PDF document into our PLOTS folder (output/plots as defined in bd2dst3pi/locations.py)    
     if save_fig:
-        pt.save_file(fig, name_file,name_folder,f"{variable}_{pt.list_into_string(name_datas,'_d_')}")
+        pt.save_file(fig, name_file, name_folder, f"{variable.replace('/','d')}_{pt.list_into_string(name_datas,'_d_')}")
     
     return fig, ax
 
@@ -393,10 +396,10 @@ def plot_hist2d(df, variables, name_variables, unit_variables, n_bins = 100,
     
     
     ## low, high and unit_variables into a list of size 2
-    low = pt.el_to_list(low,2)
-    high = pt.el_to_list(high,2)
+    low = el_to_list(low,2)
+    high = el_to_list(high,2)
     
-    unit_variables = pt.el_to_list(unit_variables,2)
+    unit_variables = el_to_list(unit_variables,2)
     
     for i in range(2):
         low[i],high[i] = pt.redefine_low_high(low[i],high[i], df[variables[i]])
