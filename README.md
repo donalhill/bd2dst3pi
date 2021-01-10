@@ -1,28 +1,3 @@
-The notebooks are in the folder 'notebooks' and work with the scripts in in the folder `scripts`
-- `1_BDT`: 
-    1. Plot the background sample
-    2. Training, test and apply a BDT
-    3. Plot variables for signal and background samplmes
-- `2_Fit/CONSTRAINED`: 
-    - `MC`: Fit to the $m(D^*)$-constrained $m(D^*3\pi)$ invariant mass for the MC
-    - `Kpipi`: Fit to the $m(D^*)$-constrained $m(D^*3\pi)$ invariant mass for the $B^0\to D^* K \pi \pi$ sample
-    - `COMMON`: 
-        1. Fit to $m(3\pi)$ around $m(D_s)$ and computation of the sWeights associated with $D_s\to3\pi$
-        2. Fit to the sWeighted $m(D^*)$-constrained $m(D^*D_s)$ distribution
-        3. Fit to the $m(D^*)$-constrained $m(D^*3\pi)$ invariant mass for the LHCb data
-- `3_optimisation_BDT`:
-    1. Fits in the `common` data for different BDT cuts
-    2. Minimise the relative uncertainty $\frac{\Delta S}{S}$ to choose the optimal BDT cut
-    3. Fits in the `common` data for the optimal BDT cut
-- `4_systematic_uncertainties`:
-    1. Compute $n_{B^0\to D^*3\pi}$ when changing the fixed parameters of the fit to $m(D^*3\pi)$, where the optimal BDT cut is applied, within their uncertainty interval.
-        - **Mode 1**: The fixed (=tail) parameters of the $D^*\pi\pi\pi$ are randomly changed within their uncertainty.
-        - **Mode 2**: The same is done with the ratio of yield $\frac{n_{B^0 \to D^{*-} K^+ \pi^+ \pi^-}}{n_{B^0 \to D^{*-\pi^+\pi^+\pi^-}}}$ and the parameters of the $B^0 \to D^{*-} K^+ \pi^+ \pi^-$ distribution
-        - **Mode 3**: The same is done with the three parameters of the sWeighted $B^0 \to D^{*-} (D_s^+ \to 3\pi)$ distribution
-    2. Compute the systematic uncertainty associated with the fixed parameters, which is the quadratic sum of the standard deviation of the $n_{sig}$ distribution obtained with the 3 modes
-
-________________________________________________________________________________________________________________
-
 # Code for the analysis of B0 -> D* 3pi decays
 
 This GitHub repository houses code for the analysis of B0 -> D* 3pi decays using LHCb data and MC. This decay is used as a normalisation mode in B0 -> D* (tau -> 3pi nu) nu analyses.
