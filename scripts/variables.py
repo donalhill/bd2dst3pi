@@ -127,7 +127,7 @@ particle_names = {
     'tau_pion0'     : '$\pi_0$',
     'tau_pion1'     : '$\pi_1$',
     'tau_pion2'     : '$\pi_2$',
-    'Dst_constr_B0' : f'$D^*3\pi|m(D_s)$={Dst_M_PDG} MeV/$c^2$',
+    'Dst_constr_B0' : f'$D^*3\pi|m(D^*)$={Dst_M_PDG} MeV/$c^2$',
     'D0_pion'       : '$\pi$ of $D^0$',
     'D0_kaon'       : '$K$ from $D^0$',
     'Dst_pion'      : '$\pi$ from $D^*$'
@@ -138,7 +138,7 @@ from numpy import log
 functions = {
     'ln(1-x)': (lambda x: log(1.-x)),
     'ln(x)'  : (lambda x: log(x)),
-    'x/y'     : (lambda x: x[0]/x[1]),
+    'x/y'    : (lambda x: x[0]/x[1]),
 }
 
 name_variables_functions = {

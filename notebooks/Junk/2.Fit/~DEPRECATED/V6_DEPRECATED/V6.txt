@@ -1,2 +1,0 @@
-Fit V6 - V5 fit but with the new data in '/eos/lhcb/wg/semileptonic/RXcHad/B02Dsttaunu/Run2/ntuples/common/data'
-Use the V5 fit on the MC and background B0->D*K(pi+pi-) (they are the same...)

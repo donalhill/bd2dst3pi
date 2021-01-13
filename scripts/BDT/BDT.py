@@ -1,8 +1,8 @@
 """
 Anthony Correia
 02/01/21
-- Plot the trained variables in the signal vs background sample
-- Prepare the signal and background sample (merge them, create a 'y' variable for learning, ...
+- Plot the distributions of the chosen variables in signal and background (super-imposed)
+- Prepare the signal and background sample (merge them, create a 'y' variable for learning, ...)
 - Train the BDT with the specified classifier (adaboost or gradientboosting)
 - Plot the result of the tests (ROC curve, overtraining check with KS test)
 - Apply the BDT to the data and save the result
@@ -200,7 +200,6 @@ def correlations(data, name_file=None,name_folder=None, title=None, **kwds):
 ## DATA PROCESSING ------------------------------------------------------
 
     
-
 def concatenate(dfa_tot_sig, dfa_tot_bkg):
     """
     @dfa_tot    :: dictionnary of dataframes, with
@@ -293,60 +292,6 @@ def BDT(X_train, y_train, classifier='adaboost', **hyperparams):
     bdt.fit(X_train, y_train, sample_weight=weights)
     
     return bdt
-
-def previous_BDT(X,y, classifier='adaboost', **hyperparams):
-    """ Train the BDT and return the result
-    
-    @X               :: numpy ndarray,  with signal and background concatenated,
-                          The columns of X correspond to the variable the BDT will be trained with
-    @y               :: numpy array, 1 if the concatened event is signal, 0 if it is background
-    @classifier      :: str, specified the used classifier
-        - 'adaboost'
-        - 'gradientboosting'
-        - 'xgboost' (experimental)
-    @hyperparameters :: dict, used hyperparameters. default:
-                                    * n_estimators = 800
-                                    * learning_rate = 0.1
-    @returns ::
-       - X_train and y_train: numpy ndarray and numpy array, which the BDT was trained with
-       - X_test  and y_test : numpy ndarray and numpy array, left data that might be used for testing
-       - bdt                : trained BDT
-    """
-    
-    
-    # Separate train/test data
-    X_train,X_test, y_train,y_test = train_test_split(X, y,test_size=0.5)
-    weights = compute_sample_weight(class_weight='balanced', y=y_train)
-    
-    if hyperparams is None:
-        hyperparams = {}
-    
-    l.add_in_dic('n_estimators', hyperparams, 800)
-    l.add_in_dic('learning_rate', hyperparams, 0.1) # Learning rate shrinks the contribution of each tree by alpha    
-    l.show_dictionnary(hyperparams, "hyperparameters")
-            
-    
-    # Define the BDT
-    if classifier == 'adaboost':
-        dt = DecisionTreeClassifier(max_depth=3, min_samples_leaf=0.05)
-        # The minimum number of samples required to be at a leaf node
-        # here, since it's a float, it is expressed in fraction of len(X_train)
-        # We need min_samples_leaf samples before deciding to create a new leaf
-        bdt = AdaBoostClassifier(dt, algorithm='SAMME', **hyperparams)
-        
-    elif classifier == 'gradientboosting':
-        bdt = GradientBoostingClassifier(max_depth=1, min_samples_split=2, verbose=1, **hyperparams)
-    
-    elif classifier == 'xgboost': # experimental
-        import xgboost as xgb
-        bdt = xgb.XGBClassifier(objective="binary:logistic", random_state=1, learning_rate=0.1)
-        
-        
-    ## Learning (fit)
-    bdt.fit(X_train, y_train, sample_weight=weights)
-    
-    return X_train, y_train, X_test, y_test, bdt
-
 
 #################################################################################################
 ################################### Analysis BDT training #######################################
@@ -507,12 +452,18 @@ def compare_train_test(clf, X_train, y_train, X_test, y_test, bins=30, name_BDT=
     name_file = pt.add_text('overtraining', name_BDT, '_')
     pt.save_file(fig, name_file, name_folder= f'BDT/{name_folder}')
     
-    ks_2samp_bkg = ks_2samp(decisions[0],decisions[2]).statistic
-    ks_2samp_sig = ks_2samp(decisions[1],decisions[3]).statistic
+    ks_2samp_sig = ks_2samp(decisions[0],decisions[2]).statistic
+    ks_2samp_bkg = ks_2samp(decisions[1],decisions[3]).statistic
+    pvalue_2samp_sig = ks_2samp(decisions[0],decisions[2]).pvalue
+    pvalue_2samp_bkg = ks_2samp(decisions[1],decisions[3]).pvalue
     print('Kolmogorov-Smirnov statistic')
     print(f"signal    : {ks_2samp_sig}")
-    print(f"Background: {ks_2samp_bkg}")    
-    return fig, ax, ks_2samp_sig, ks_2samp_bkg
+    print(f"Background: {ks_2samp_bkg}")
+    
+    print('p-value')
+    print(f"signal    : {pvalue_2samp_sig}")
+    print(f"Background: {pvalue_2samp_bkg}") 
+    return fig, ax, ks_2samp_sig, ks_2samp_bkg, pvalue_2samp_sig, pvalue_2samp_bkg
 
 def apply_BDT(df_tot, df_train, bdt,name_BDT="", save_BDT=False, kind_data='common'):
     """ 

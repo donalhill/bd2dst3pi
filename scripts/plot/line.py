@@ -1,8 +1,8 @@
 """
 Anthony Correia
 02/01/21
-- plot x vs y
-- plot x vs y1, y2, y3, ... (several curves with the same x)
+- plot y vs x
+- plot y1, y2, y3, ... vs x (several curves with the same x)
 """
 
 from . import tool as pt

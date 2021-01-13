@@ -4,7 +4,7 @@ Anthony Correia
 - Compute the number of d.o.f. of a model
 - Compute the reduced chi2 of a model
 - plot the pull diagram ot a fit
-- plot the histogram, with the fitted PDF and the fitted parameters
+- plot the histogram, with the fitted PDF and the fitted parameters and the pull diagram
 """
 
 import plot.tool as pt
@@ -118,12 +118,12 @@ def get_chi2(fit_counts, counts):
     diff = np.square(fit_counts-counts)
     
     #n_bins = len(counts)
-    diff = np.divide(diff,counts,out=np.zeros_like(diff), where=counts!=0)
+    diff = np.divide(diff, np.abs(counts), out=np.zeros_like(diff), where=counts!=0)
     chi2 = np.sum(diff) # sigma_i^2 = mu_i
     return chi2
 
 def reduced_chi2(fit_counts, counts, ndof):
-    n_bins = len(counts)
+    n_bins = np.abs(len(counts))
     return get_chi2(fit_counts, counts)/(n_bins - ndof)
 
 #################################################################################################
@@ -131,7 +131,7 @@ def reduced_chi2(fit_counts, counts, ndof):
 #################################################################################################
     
     
-def plot_pull_diagram(ax, model, counts, centres, err, low=None, high=None, line=3,
+def plot_pull_diagram(ax, model, counts, edges, centres, err, low=None, high=None, line=3, mode_hist_pull=True,
                       plot_scaling=None, fontsize=25, color='b', color_lines='r', show_chi2=False):
     """
     Plot pull diagram of 'model' compared to the data given by (counts, centres)
@@ -161,7 +161,11 @@ def plot_pull_diagram(ax, model, counts, centres, err, low=None, high=None, line
         pull = np.divide(counts-fit,err)
     
     ## Plotting
-    ax.errorbar(centres,pull, yerr = np.ones(len(centres)),color =color, ls='', marker='.')
+    if mode_hist_pull:
+        ax.bar(centres, pull, centres[1]-centres[0], color=color, edgecolor=None)
+        ax.step(edges[1:], pull, color=color)
+    else:
+        ax.errorbar(centres,pull, yerr = np.ones(len(centres)),color=color, ls='', marker='.')
     ax.plot([low,high],[line, line],color='r',ls='--')
     ax.plot([low,high],[-line, -line],color='r',ls='--')
     ax.plot([low,high],[0,0],color='r')
@@ -185,9 +189,18 @@ def plot_pull_diagram(ax, model, counts, centres, err, low=None, high=None, line
     ax.set_xlim([low,high]) 
     
     ndof = count_n_dof_model(model)
-    print("Number of d.o.f. in the model: ", ndof)
+    
+    ## Fit quality
+    print(f"Number of bins: {len(centres)}")
+    print(f"Width of the bins: {centres[1]-centres[0]}")
+    print("")
     chi2 = reduced_chi2(fit, counts, ndof)
+    print("Number of d.o.f. in the model: ", ndof)
     print('Reduced chi2: ', chi2)
+    print("")
+    print(f"Mean of the normalised residuals: {np.mean(pull)}")
+    print(f"Std of the normalised residuals: {np.std(pull)}")
+    
     if show_chi2:
         ax.set_xlabel(f'(reduced $\\chi^2$={chi2:.2f})', fontsize=fontsize)
     
@@ -489,7 +502,7 @@ def plot_hist_fit (df, variable, name_var=None, unit_var=None,models=None, obs=N
                   params=None,name_params=None, colWidths=[0.04,0.01,0.06,0.06], fontsize_res=20.,
                   loc_res='upper right', loc_leg='upper left',
                   weights=None, save_fig=True, pos_text_LHC=None, show_leg=None,
-                  plot_pull=True):
+                  plot_pull=True, mode_hist_pull=True):
     """ Plot complete histogram with fitted curve, pull histogram and results of the fits, save it in plots/
     @df            :: pandas dataframe that contains all the variables, including 'variable'
     @variable      :: name of the variable to plot and fit
@@ -554,7 +567,7 @@ def plot_hist_fit (df, variable, name_var=None, unit_var=None,models=None, obs=N
     
     ## plot 1D histogram of data
     # Histogram 
-    counts,_,centres,err = plot_hist_alone(ax[0], df[variable], n_bins,
+    counts, edges, centres, err = plot_hist_alone(ax[0], df[variable], n_bins,
                                                low_hist, high_hist, color, mode_hist, alpha = 0.1, weights=weights)
     
     
@@ -577,13 +590,13 @@ def plot_hist_fit (df, variable, name_var=None, unit_var=None,models=None, obs=N
     plot_fitted_curves(ax[0], models, plot_scaling, low, high, name_models=name_models, type_models=type_models,
                        line_width=2.5, colors=colors, fontsize_legend=fontsize_leg, loc_leg=loc_leg, show_legend=show_leg)
     
-    pt.change_ymax(ax[0], factor=1.1)
+    pt.change_ymax(ax[0], factor=1.1)    
     
     color_pull = colors if not isinstance(colors, list) else colors[0]
     ## Plot pull histogram
     if plot_pull:
-        plot_pull_diagram(ax[1], model, counts, centres, err, color=color_pull,
-                          low=low, high=high, plot_scaling=plot_scaling, show_chi2=show_chi2)
+        plot_pull_diagram(ax[1], model, counts, edges, centres, err, color=color_pull,
+                          low=low, high=high, plot_scaling=plot_scaling, show_chi2=show_chi2, mode_hist_pull=mode_hist_pull)
     
     
     ## Plot the fitted parameters of the fit

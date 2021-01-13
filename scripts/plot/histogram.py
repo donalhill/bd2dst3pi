@@ -31,7 +31,19 @@ rcParams['axes.unicode_minus'] = False
 ################################ subfunctions for plotting ######################################
 ################################################################################################# 
 
-
+def get_count_err(data, n_bins, low, high, weights=None):
+    """
+    @data          :: series of data to plot
+    @n_bins        :: int, number of bins
+    @low           :: low limit of the distribution
+    @high          :: high limit of the distribution  
+    @weights       :: Weights of each element in data
+    """
+    counts, edges = np.histogram(data, range = (low,high), bins=n_bins, weights=weights)
+    centres = (edges[:-1] + edges[1:])/2.    
+    err = np.sqrt(counts)
+    
+    return counts, edges, centres, err
 
 def plot_hist_alone(ax, data, n_bins, low, high, color, mode_hist, alpha = 1, 
                     density = False, label = None, label_ncounts = False, weights=None):
@@ -42,6 +54,7 @@ def plot_hist_alone(ax, data, n_bins, low, high, color, mode_hist, alpha = 1,
     
     @ax            :: axis where to plot
     @data          :: series of data to plot
+    @n_bins        :: int, number of bins
     @low           :: low limit of the distribution
     @high          :: high limit of the distribution
     @color         :: color of the distribution
@@ -59,12 +72,9 @@ def plot_hist_alone(ax, data, n_bins, low, high, color, mode_hist, alpha = 1,
             - err     : Poisson uncertainty on the counts
     '''
     
-    counts,edges = np.histogram(data, range = (low,high), bins=n_bins, weights=weights)
-    centres = (edges[:-1] + edges[1:])/2.    
-    n_candidates = counts.sum()
-    err = np.sqrt(counts)
-    
+    counts, edges, centres, err = get_count_err(data, n_bins, low, high, weights=weights)
     bin_width = pt.get_bin_width(low,high,n_bins)
+    n_candidates = counts.sum()
     
     if label_ncounts:
         if label is None:
