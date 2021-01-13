@@ -1,6 +1,73 @@
-# Code for the analysis of B0 -> D* 3pi decays
+# Summary of the notebooks
 
-This GitHub repository houses code for the analysis of B0 -> D* 3pi decays using LHCb data and MC. This decay is used as a normalisation mode in B0 -> D* (tau -> 3pi nu) nu analyses.
+The notebooks are in the folder `notebooks`:
+- `1_Fit/CONSTRAINED`: 
+    - `MC`: Fit to the $m(D^*)$-constrained $m(D^*3\pi)$ invariant mass for the MC
+    - `Kpipi`: Fit to the $m(D^*)$-constrained $m(D^*3\pi)$ invariant mass for the $B^0\to D^* K \pi \pi$ sample
+    - `COMMON`: 
+        1. Fit to $m(3\pi)$ around $m(D_s)$ and computation of the sWeights associated with $D_s\to3\pi$
+        2. Fit to the sWeighted $m(D^*)$-constrained $m(D^*D_s)$ distribution
+        3. Fit to the $m(D^*)$-constrained $m(D^*3\pi)$ invariant mass for the LHCb data.
+        4. Compute the $_s$Weights associated with the signal peak in the $m(D^*3\pi)$ spectrum
+- `2_BDT`: 
+    1. Choose the background sample (i.e., the high mass cut on the $m(D^*)$-constrained $m(D^*3\pi)$)
+    2. Compare the $B^0 \to D^{*-} 3\pi$ $_s$Weighted distributions of the variables used in the training with the MC distributions. Since the MC is used as a proxy of the LHCb signal, the training variables must agree.
+    3. Compare the distributions of the variables used in the training in the background and signal samples.
+    4. Training, test and apply the BDTs.
+    5. As a check, compare the $_s$Weighted BDT output to the BDT output in MC. We see that the $_s$Weights are imperfect and shift the BDT ouput of the signal to lower values.
+- `3_optimisation_BDT`:
+    1. Fits to the `common` data for different BDT cuts
+    2. Minimise the relative uncertainty $\frac{\Delta S}{S}$ to choose the optimal BDT cut
+    3. Shows the fit in the `common` data for the optimal BDT cut
+- `4_systematic_uncertainties`:
+    1. Compute $n_{B^0\to D^*3\pi}$ when changing the fixed parameters of the fit to $m(D^*3\pi)$, where the optimal BDT cut is applied, within their uncertainty interval.
+        - **Mode 1**: The fixed (=tail) parameters of the $D^*\pi\pi\pi$ are randomly changed within their uncertainty.
+        - **Mode 2**: The same is done with the ratio of yield $\frac{n_{B^0 \to D^{*-} K^+ \pi^+ \pi^-}}{n_{B^0 \to D^{*-\pi^+\pi^+\pi^-}}}$ and the parameters of the $B^0 \to D^{*-} K^+ \pi^+ \pi^-$ distribution
+        - **Mode 3**: The same is done with the three parameters of the sWeighted $B^0 \to D^{*-} (D_s^+ \to 3\pi)$ distribution
+    2. Compute the systematic uncertainty associated with the fixed parameters, which is the quadratic sum of the standard deviation of the three $n_{sig}$ distributions obtained in the 3 modes
+   
+# Summary of the scripts
+
+
+The notebooks use the functions defined in the scripts, located in the the folder `scripts`:
+- `variables.py`: contains global variables, such as the "latex" names of the variables and particles.
+- `load_save_data.py`:
+    - Load and save root/json/pickle files
+    - Apply cuts on some variables, add the $m(D^*)$-constrained $m(D^*3\pi)$ variable
+    - Get a json latex tables from the parameters that are saved in a json file
+- `fit.py`:
+    - Define some PDFs
+    - Define the parameters from a dictionnary of training variables
+    - Perform a fit (using zfit)
+    - Check if the fit has an error (if it did not converge, has not a positive-definite hesse, ...)
+    - Save the result of the fit in a JSON file
+- `BDT/BDT.py/`
+    - Plot the super-imposed signal and background distributions of the training variables
+    - Plot the correlation matrix of the training variables
+    - Prepare the signal and background sample in order to be used for the training
+    - Train a gradient or adaboost classifier
+    - Test the BDT: ROC curve, over-traning plots, Kolmogorov-Smirnov test
+    - Apply the BDT to LHCb data and save the ouput
+- `plot/tool.py/`
+    - Functions to change what the plot looks like (grid, logscale, 'LHCb preliminary' test, ...)
+    - Save a plot
+    - Functions to retrieve the name and unit of the variable (for the plot), from `variables.py`. This is used in the legend of the plots.
+    - Some other tool functions useful to plot (for instance, remove the latex syntax of a string in order to use it in the name of the saved file, etc.)
+- `plot/histogram.py`:
+    - Plot 1D and 2D histograms (with the correct label for the axes)
+    - Plot histograms of the quotient of 2 variables (with the correct label for the axes)
+- `plot/fit.py`:
+    - Plot the distribution of a variable together with his fitted PDF and the pull histogram
+    - Compute the number of degrees of freedom of a model only from the zfit model
+    - Compute the reduced chi2 of a model
+- `plot/line.py`: plot y vs x, or y1, y2, ... vs x (i.e., several curves as a function of x)
+
+
+__________________________________________
+
+# Code for the analysis of $B^0 -> D^{*-} 3\pi$ decays
+
+This GitHub repository houses code for the analysis of $B^0 -> D^{*-} 3\pi$ decays using LHCb data and MC. This decay is used as a normalisation mode in $B^0 -> D{*-} (\tau^+ \to 3\pi \bar{\nu}_\tau) nu$ analyses.
 
 ## Setting up
 
@@ -186,7 +253,7 @@ and then `loc.DATA` for example to get the path to the data files. You can add t
 
 ## Example notebooks to get you started
 
-All of the example notebooks are in the `bd2dst3pi/notebooks` folder. Once you have launched your Jupyter session in your browser following the instuctions above, you can go into the `notebooks` folder and click on an example notebook. When you start making your own notebooks, you can add them into this folder as well.
+All of the example notebooks are in the `bd2dst3pi/notebooks/0.Tutorial/` folder. Once you have launched your Jupyter session in your browser following the instuctions above, you can go into the `notebooks` folder and click on an example notebook. When you start making your own notebooks, you can add them into this folder as well.
 
 To make a new notebook, you can click on the `New` button to the right of your Jupyter window. In the menu shown, select `bd2dst3pi_env` to choose the analysis Conda env we made above.
 
