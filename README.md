@@ -65,9 +65,9 @@ The notebooks use the functions defined in the scripts, located in the the folde
 
 __________________________________________
 
-# Code for the analysis of $B^0 -> D^{*-} 3\pi$ decays
+# Code for the analysis of B0 -> D* 3pi decays
 
-This GitHub repository houses code for the analysis of $B^0 -> D^{*-} 3\pi$ decays using LHCb data and MC. This decay is used as a normalisation mode in $B^0 -> D{*-} (\tau^+ \to 3\pi \bar{\nu}_\tau) nu$ analyses.
+This GitHub repository houses code for the analysis of B0 -> D* 3pi decays using LHCb data and MC. This decay is used as a normalisation mode in B0 -> D* (tau -> 3pi nu) nu analyses.
 
 ## Setting up
 
@@ -108,6 +108,7 @@ This helps you to keep your own personal copy of the `bd2dst3pi` project. And if
 The Conda env we installed above comes with a full ROOT install, so it is possible to write code to analyse the data in ROOT C++ or PyROOT. For interactive analysis, it is nice to work in [Jupyter notebooks](https://jupyter.org/). With these notebooks, you can combine code blocks with documentation (even inclduing LaTeX maths) to explain what various steps are doing. This is a good way to learn and also to explain your work to others. The notbooks also render any plots you make interactively, so you can see your output directly in your browser.
 
 Because we are working with files at CERN, our notebooks need to live on `lxplus`. This is why we have cloned the project above into `lxplus`. However, with a couple of steps, it is possible to use a web browser on our own machine (laptop/desktop) to veiw the notebooks.
+
 
 The first step is to add this function to your `~/.bashrc` file on `lxplus`:
 ```bash
