@@ -63,42 +63,42 @@ variables_params = {
     },
     'TRACK_CHI2NDOF':
     {
-        'name': '$\\chi^2$ by d.o.f. of the track',
+        'name': '$\\chi^2$ per d.o.f. of the track',
         'unit': None
     },
     'ENDVERTEX_CHI2':
     {
-        'name': '$\\chi^2$ of the end vertex',
+        'name': '$\\chi^2$ of the EV',
         'unit': None
     },
     'OWNPV_CHI2':
     {
-        'name': '$\\chi^2$ of the primary vertex',
+        'name': '$\\chi^2$ of the PV',
         'unit': None
     },
     'FDCHI2_OWNPV':
     {
-        'name': '$\\chi^2$ of the flight distance',
+        'name': '$\\chi^2$ of the flight distance w.r.t. the PV',
         'unit': None
     },
     'FD_OWNPV':
     {
-        'name': 'Flight distance',
+        'name': 'Flight distance w.r.t. the PV',
         'unit': None
     },
     'IPCHI2_OWNPV':
     {
-        'name': '$\\chi^2$ of the impact parameter',
+        'name': '$\\chi^2$ of the impact parameter w.r.t. the PV',
         'unit': None
     },
     'IP_OWNPV':
     {
-        'name': 'Impact parameter',
+        'name': 'Impact parameter w.r.t. the PV',
         'unit': None
     },
     'DIRA_OWNPV':
     {
-        'name': 'Cosine of the DIRA angle',
+        'name': 'Cosine of the DIRA angle w.r.t. the PV',
         'unit': None
     },
     'M_Tau_Pi12pip':
@@ -107,7 +107,7 @@ variables_params = {
         'unit': 'GeV/$c^2$'
     },
     'ENDVERTEX_CHI2,ENDVERTEX_NDOF:x/y':{
-        'name': "$\chi^2$ of the end vertex per d.o.f.",
+        'name': "$\chi^2$ of the EV per d.o.f.",
         'unit': None
     },
     'ETA':{

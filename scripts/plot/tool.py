@@ -239,13 +239,31 @@ def change_ymax(ax, factor=1.1, ymin_to0=True):
         ymin=0
     ax.set_ylim(ymin,ymax*factor)
 
+def change_max(ax, factor=1.1, min_to0=True, axis='y'):
+    """ multiple ymax of the plot by factor
+    @ax        :: axis where to plot
+    @factor    :: float, factor by which ymax is multiplied
+    @ymin_to0  :: bool, if True, ymin is set at 0
+    """
+    if axis=='x' or axis=='both':
+        xmin, xmax = ax.get_xlim()
+        if min_to0:
+            xmin=0
+        ax.set_xlim(xmin,xmax*factor)
+    
+    if axis=='y' or axis=='both':
+        ymin, ymax = ax.get_ylim()
+        if min_to0:
+            ymin=0
+        ax.set_ylim(ymin,ymax*factor)
+    
     
 def set_label_ticks(ax, labelsize=20):
     """Set label ticks to size given by labelsize"""
     ax.tick_params(axis='both', which='both', labelsize=20)
 
 
-def fix_plot(ax, ymax=1.1, show_leg=True, fontsize_ticks=20., fontsize_leg=20., loc_leg='best', ymin_to0=True, pos_text_LHC=None):
+def fix_plot(ax, ymax=1.1, show_leg=True, fontsize_ticks=20., fontsize_leg=20., loc_leg='best', ymin_to0=True, pos_text_LHC=None, axis='y'):
     """ Some fixing of the parameters (fontsize, ymax, legend)
     @ax              :: axis where to plot
     @ymax            :: float, multiplicative factor of ymax
@@ -257,7 +275,7 @@ def fix_plot(ax, ymax=1.1, show_leg=True, fontsize_ticks=20., fontsize_leg=20., 
     """
     
     if ymax is not None:
-        change_ymax(ax,ymax, ymin_to0)
+        change_max(ax,ymax, ymin_to0, axis)
     
     set_label_ticks(ax)
     if show_leg:
@@ -366,10 +384,12 @@ def retrieve_particle_variable(variable):
     else:
         return None, None
 
-def get_name_unit_from_particle_var(particle, var, variable):
+def get_name_unit_from_particle_var(particle, var, variable, get_particle=False):
     '''
-    @particle :: str/None, name of the particle
-    @var      :: str/None, name of the variable
+    @particle     :: str/None, name of the particle
+    @var          :: str/None, name of the variable
+    @variable     :: str, name of the full variable (particle_var in general)
+    @get_particle :: Bool, if True, return (particle, var)
     '''
     if particle is not None and var is not None:
         if particle in particle_names:
@@ -388,26 +408,39 @@ def get_name_unit_from_particle_var(particle, var, variable):
         if name_particle is None:
             name_variable = latex_format(var)
         else:
-            name_variable = f"{name_var}({name_particle})"
+            if get_particle:
+                name_variable = name_var
+            else:
+                name_variable = f"{name_var}({name_particle})"
     else:
         name_variable = variable
         unit_var = None
     
-    return name_variable, unit_var
+    if get_particle:
+        return name_particle, name_variable, unit_var
+    else:
+        return name_variable, unit_var
 
-def get_name_unit_particule_var(variable):
+
+
+def get_name_unit_particule_var(variable, get_particle=False):
     """ return the name of particle, and the name and unit of the variable
-    @variable   :: str, variable (for instance: 'B0_M')
-    
-    @returns    ::
+    @variable     :: str, variable (for instance: 'B0_M')
+    @get_particle :: Bool, if True, return the name of the particle  and of the var separetately
+    @returns    :: if get_particle is False
                     - str, name of the variable (for instance, 'm($D^{*-}3\pi$)')
                     - str, unit of the variable (for instance, 'MeV/$c^2$')
+                   if get_particle is True
+                    - str, name of the particle (for instance, 'm($D^{*-}3\pi$)')
+                    - str, name of the var (for instance, 'm')
+                    - str, unit of the var (for instance, 'MeV/$c^2$')
     """
     
     # If the variable is expressed in a function, there must be a ':'
     index_underscore = variable.find(':')
     variable_with_function = (index_underscore != -1)
     
+    have_predefinite_name = False
     
     if variable_with_function:
         
@@ -445,22 +478,33 @@ def get_name_unit_particule_var(variable):
 
             # at this stage:
             # var = var1,var2:function
-            all_particles_same = (var in variables_params)
+            have_predefinite_name = (var in variables_params)
             if all_particles_same:
-                name_variable, unit_var = get_name_unit_from_particle_var(particle, var, variable)
+                if get_particle:
+                    name_particle, name_variable, unit_var = get_name_unit_from_particle_var(particle, var, variable, 
+                                                                          get_particle=get_particle)
+                else:
+                    name_variable, unit_var = get_name_unit_from_particle_var(particle, var, variable, 
+                                                                          get_particle=get_particle)
             
         # all_particles_same = False is the var cannot be found in the list of known variables
         # or if the particles aren't the same
         
-        ## IF THE PARTICLES AREN'T THE SAME ================================================
-        if not all_particles_same:
+        ## IF THE PARTICLES AREN'T THE SAME OR IT DOES NOT HAVE A PREDEFINITE NAME ================================================
+        if not all_particles_same or not have_predefinite_name:
             if name_function in name_variables_functions:
                 var = name_variables_functions[name_function](variables)
                 
             else:
                 name_variables = [None]*len(varis)
                 for i in range(len(varis)):
-                    name_variables[i], _ = get_name_unit_from_particle_var(particles[i], varis[i], variable)
+                    if get_particle or have_predefinite_name:
+                        name_particle, name_variables[i], _ = get_name_unit_from_particle_var(particles[i], varis[i], variable,
+                                                                           get_particle=True)
+                    else:
+                        name_particle = False
+                        name_variables[i], _ = get_name_unit_from_particle_var(particles[i], varis[i], variable,
+                                                                           get_particle=False)
                 variables_text = list_into_string(name_variables, ' and the ')
                 if variables_text[0] != '$' and variables_text[1].islower(): 
                     #if not '$' at the beg, and the 2nd character is not in upper case (ex: 'DIRA angle')
@@ -469,10 +513,19 @@ def get_name_unit_particule_var(variable):
                 unit_var = None
         
     if not variable_with_function:
+        
         particle, var = retrieve_particle_variable(variable)
-        name_variable, unit_var = get_name_unit_from_particle_var(particle, var, variable)
+        if get_particle:
+            name_particle, name_variable, unit_var = get_name_unit_from_particle_var(particle, var, variable, 
+                                                                  get_particle=get_particle)
+        else:
+            name_variable, unit_var = get_name_unit_from_particle_var(particle, var, variable, 
+                                                                  get_particle=get_particle)
+    if get_particle:
+        return name_particle, name_variable, unit_var
+    else:
+        return name_variable, unit_var
     
-    return name_variable, unit_var
 
 def get_name_file_title_BDT(name_file, title, cut_BDT, variable, name_data):
     """ Return the new name_file and title given the cut on the BDT 

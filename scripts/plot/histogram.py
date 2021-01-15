@@ -46,7 +46,8 @@ def get_count_err(data, n_bins, low, high, weights=None):
     return counts, edges, centres, err
 
 def plot_hist_alone(ax, data, n_bins, low, high, color, mode_hist, alpha = 1, 
-                    density = False, label = None, label_ncounts = False, weights=None):
+                    density = False, label = None, label_ncounts = False, weights=None,
+                    orientation='vertical', **params):
     ''' 
     Plot histogram
     - If mode_hist: Points with error
@@ -88,13 +89,24 @@ def plot_hist_alone(ax, data, n_bins, low, high, color, mode_hist, alpha = 1,
         err = err/(n_candidates*bin_width)
     
     if mode_hist:
-        ax.bar(centres, counts,centres[1]-centres[0], color=color, alpha=alpha, edgecolor=None, label=label)
-        ax.step(edges[1:],counts, color=color)
+        if orientation=='vertical':
+            ax.bar(centres, counts, centres[1]-centres[0], color=color, alpha=alpha, edgecolor=None, label=label,
+                  **params)
+            ax.step(edges[1:],counts, color=color)
+        elif orientation=='horizontal':
+            ax.barh(centres, counts, centres[1]-centres[0], color=color, alpha=alpha, edgecolor=None, label=label,
+                  **params)
+            ax.step(counts, edges[:-1], color=color)
     else:
-        ax.errorbar(centres, counts, yerr=err, color=color, ls='', marker='.', label=label)  
-    
-    ax.set_xlim(low,high)
-    
+        if orientation=='vertical':
+            ax.errorbar(centres, counts, yerr=err, color=color, ls='', marker='.', label=label) 
+        elif orientation=='horizontal':
+            ax.errorbar(counts, centres, xerr=err, color=color, ls='', marker='.', label=label) 
+    if orientation=='vertical':     
+        ax.set_xlim(low,high)
+    elif orientation=='horizontal':     
+        ax.set_ylim(low,high)
+        
     return counts, edges, centres, err
 
 
@@ -140,7 +152,8 @@ def set_label_candidates_hist (ax, bin_width, pre_label, unit_variable=None, fon
 
         
     
-def set_label_hist(ax, name_variable, unit_variable, bin_width, density=False, name_data=None, fontsize=25):
+def set_label_hist(ax, name_variable, unit_variable, bin_width, density=False, name_data=None, fontsize=25,
+                  orientation='vertical'):
     ''' 
     Set xlabel and ylabel of a histogram
     
@@ -151,14 +164,27 @@ def set_label_hist(ax, name_variable, unit_variable, bin_width, density=False, n
     @fontsize      :: fontsize of the label
     @bin_width     :: bin width of the histogram
     '''
+    axis = {}
+    if orientation=='vertical':
+        axis['x'] = 'x'
+        axis['y'] = 'y'
+    elif orientation=='horizontal':
+        axis['x'] = 'y'
+        axis['y'] = 'x'
+    
     
     #Set the x label
+    fontsize_x = fontsize
+    if len(name_variable) > 50:
+        fontsize_x -= 7
     set_label_variable(ax, name_variable, unit_variable=unit_variable, 
-                       name_data=name_data, fontsize=fontsize, axis='x')
+                       name_data=name_data, fontsize=fontsize_x, axis=axis['x'])
     
     pre_label = "Proportion of candidates" if density else "Candidates"
+    
+    
     set_label_candidates_hist(ax, bin_width, pre_label = pre_label, unit_variable=unit_variable, 
-                              fontsize=25, axis='y')
+                              fontsize=fontsize, axis=axis['y'])
 
 def set_label_2Dhist(ax, name_variables, unit_variables, fontsize=25):
     ''' 
@@ -202,10 +228,10 @@ def set_label_divided_hist(ax, name_variable, unit_variable, bin_width, names_da
 ################################################################################################# 
 
 def plot_hist(dfs, variable, name_variable=None, unit_variable=None, n_bins=100, mode_hist=False, 
-              low=None, high=None, density=None, 
-              title=None, name_data_title=False, label_ncounts=True,
+              low=None, high=None, density=None, ax=None, orientation='vertical',
+              title=None, name_data_title=False, label_ncounts=True, fontsize=25,
               name_file=None,name_folder=None,colors=None, weights=None, save_fig=True,
-              pos_text_LHC=None, ymax=None, show_leg=None, loc_leg='best', alpha=None):
+              pos_text_LHC=None, ymax=None, show_leg=None, loc_leg='best', alpha=None, **params):
     """ Save the histogram(s) of variable of the data given in dfs
     
     @dfs             :: Dictionnary {name of the dataframe : pandas dataframe, ...}
@@ -235,8 +261,17 @@ def plot_hist(dfs, variable, name_variable=None, unit_variable=None, n_bins=100,
     if density is None:
         density = len(dfs)>1 # if there are more than 2 histograms
     
-    fig, ax = plt.subplots(figsize=(8,6))
     
+    axis_mode = (ax is not None)
+    
+    if not axis_mode:
+        if orientation=='vertical':
+            fig, ax = plt.subplots(figsize=(8,6))
+        elif orientation=='horizontal':
+            fig, ax = plt.subplots(figsize=(6,8))
+    else:
+        save_fig = False
+        
     if isinstance(dfs,dict):
         name_datas = list(dfs.keys())
     
@@ -265,25 +300,36 @@ def plot_hist(dfs, variable, name_variable=None, unit_variable=None, n_bins=100,
         if alpha[i] is None:
             alpha[i] = 0.5 if len(dfs)>1 else 1
         _,_,_,_ = plot_hist_alone(ax, df[variable], n_bins, low, high, colors[i], mode_hist, alpha=alpha[i], 
-                        density = density, label = name_data, label_ncounts=label_ncounts, weights=weights[i])
+                        density = density, label = name_data, label_ncounts=label_ncounts, weights=weights[i],
+                                  orientation=orientation,
+                                  **params)
               
               
     #Some plot style stuff
     if ymax is None:
         ymax=1+0.15*len(name_datas)
+        
     if show_leg is None:
         show_leg = len(dfs)>1
-    set_label_hist(ax, name_variable, unit_variable, bin_width, density=density, fontsize=25)
-    pt.fix_plot(ax, ymax=ymax, show_leg=show_leg, pos_text_LHC=pos_text_LHC, loc_leg=loc_leg)
+        
+    set_label_hist(ax, name_variable, unit_variable, bin_width, density=density, fontsize=fontsize, 
+                   orientation=orientation)
+    if orientation=='vertical':
+        axis_y = 'y'
+    elif orientation=='horizontal':
+        axis_y = 'x'
+    pt.fix_plot(ax, ymax=ymax, show_leg=show_leg, pos_text_LHC=pos_text_LHC, loc_leg=loc_leg, axis=axis_y)
     
     #Remove any space not needed around the plot
     plt.tight_layout()
     
     if save_fig:
         pt.save_file(fig, name_file,name_folder,f'{variable}_{pt.list_into_string(name_datas)}')
-    return fig, ax
-
     
+    if not axis_mode:
+        return fig, ax
+
+
 def plot_hist_var (datas, variable, name_variable=None, unit_variable=None, name_datas=None, **kwargs):
     ''' plot the histogram(s) of data
     
@@ -442,6 +488,83 @@ def plot_hist2d(df, variables, name_variables, unit_variables, n_bins = 100,
     
     return fig, ax
     
+def plot_scatter2d(dfs, variables, name_variables, unit_variables=[None, None], n_bins = 100,
+                   colors=['g', 'r', 'o', 'b'],
+                low=None, high=None, ax=None,
+                title=None, get_sc=False,
+                name_file=None, name_folder=None, fontsize=25,
+               save_fig=True, pos_text_LHC=None, **params):
+    '''  Plot a 2D histogram of 2 variables.
+    @dfs               :: dataframe (only one) or list of dataframe.
+                                If this is a list of dataframe, it plots a scatter plot!
+    @variables         :: list of 2 str, variables in the dataframe
+    @name_variables    :: list of 2 str, names of the variables 
+    @unit_variables    :: str (common unit) or list of 2 str (units of variable[0] and variable[1])
+    @n_bins            :: integer or list of 2 integers
+    @low               :: float or list of 2 floats ; low  value(s) of variables
+    @high              :: float or list of 2 floats ; high value(s) of variables
+    @title             :: str, title of the figure
+    
+    @name_file         :: name of the plot that will be saved
+    @name_folder       :: name of the folder where to save the plot
+    @name_data         :: str, name of the data, this is isued to define the name of the plot,
+                              in the case name_file is not defined.
+    @log_scale         :: if true, the colorbar is in logscale
+    @save_fig        :: Bool, specifies is the figure is saved
+    @params            :: parameters passed to ax.scatter
+    
+    @returns         :: fig, ax
+    '''
+    
+    ## low, high and unit_variables into a list of size 2
+    low = el_to_list(low,2)
+    high = el_to_list(high,2)
+    
+    unit_variables = el_to_list(unit_variables,2)
+    
+    axis_mode = (ax is not None)
+    
+    ## Plotting
+    if not axis_mode:
+        fig, ax = plt.subplots(figsize=(8,6))
+    else:
+        save_fig=False
+        
+    title = pt.add_text(None, title, default=None)
+    
+    ax.set_title(title, fontsize=25)
+    
+    scs = [None]*len(dfs)
+    for k, (name_data, df) in enumerate(dfs.items()):
+        scs[k] = ax.scatter(df[variables[0]], df[variables[1]], 
+                   c=colors[k], label=name_data, **params)
+    if len(scs)==1:
+        scs = scs[0]
+        
+    ax.set_xlim([low[0],high[0]])
+    ax.set_ylim([low[1],high[1]])
+
+    
+    ## Label, color bar
+    pt.set_label_ticks(ax)
+    pt.set_text_LHCb(ax, pos=pos_text_LHC)
+    
+    set_label_2Dhist(ax, name_variables, unit_variables, fontsize=fontsize)
+    
+    ## Save the data
+    if save_fig:
+        pt.save_file(fig, name_file, name_folder, 
+                     pt.add_text(pt.list_into_string(variables,'_vs_'), 
+                                 pt.list_into_string(name_data,'_'),'_'))
+    
+    if not axis_mode:
+        if get_sc:
+            return fig, ax, scs
+        else:
+            return fig, ax
+    else:
+        if get_sc:
+            return scs
 
 #################################################################################################
 ##################################### Automatic label plots #####################################
@@ -514,10 +637,10 @@ def plot_hist2d_particle(df, variables, **kwargs):
     
     Then, plot 2d histogram with plot_hist2d.
     
-    @df       :: pandas dataframe
-    @variable :: str, variable (for instance: 'B0_M'), in dataframe
-    @kwargs   :: arguments passed in plot_hist_fit (except variables, name_vars, unit_vars)
-    @returns  :: fig, ax
+    @df        :: pandas dataframe
+    @variables :: listr of 2 str, variables (for instance: 'B0_M'), in dataframe
+    @kwargs    :: arguments passed in plot_hist2d (except variables, name_vars, unit_vars)
+    @returns   :: fig, ax
     """
     name_variables = [None, None]
     unit_vars      = [None, None]
@@ -531,3 +654,22 @@ def plot_hist2d_particle(df, variables, **kwargs):
         kwargs['name_folder'] = kwargs['name_data']
     
     return plot_hist2d(df, variables, name_variables=name_variables, unit_variables=unit_vars, **kwargs)
+
+def plot_scatter2d_particle(dfs, variables, **kwargs):
+    """
+    Retrieve name_variable, unit_variable and name_particle directly from variables.py.
+    (in order not to have to type it every time)
+    
+    Then, plot 2d histogram with plot_hist2d.
+    
+    @df        :: pandas dataframe
+    @variables :: listr of 2 str, variables (for instance: 'B0_M'), in dataframe
+    @kwargs    :: arguments passed in plot_scatter2d (except variables, name_vars, unit_vars)
+    @returns   :: fig, ax
+    """
+    name_variables = [None, None]
+    unit_vars      = [None, None]
+    for i in range(2):
+        name_variables[i], unit_vars[i] = pt.get_name_unit_particule_var(variables[i])    
+    
+    return plot_scatter2d(dfs, variables, name_variables=name_variables, unit_variables=unit_vars, **kwargs)

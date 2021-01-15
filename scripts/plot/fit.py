@@ -198,8 +198,8 @@ def plot_pull_diagram(ax, model, counts, edges, centres, err, low=None, high=Non
     print("Number of d.o.f. in the model: ", ndof)
     print('Reduced chi2: ', chi2)
     print("")
-    print(f"Mean of the normalised residuals: {np.mean(pull)}")
-    print(f"Std of the normalised residuals: {np.std(pull)}")
+    print(f"Mean of the normalised residuals: {np.mean(pull[np.isfinite(pull)])}")
+    print(f"Std of the normalised residuals: {np.std(pull[np.isfinite(pull)])}")
     
     if show_chi2:
         ax.set_xlabel(f'(reduced $\\chi^2$={chi2:.2f})', fontsize=fontsize)
