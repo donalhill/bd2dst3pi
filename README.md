@@ -55,6 +55,7 @@ The notebooks use the functions defined in the scripts, located in the the folde
     - Some other tool functions useful to plot (for instance, remove the latex syntax of a string in order to use it in the name of the saved file, etc.)
 - `plot/histogram.py`:
     - Plot 1D and 2D histograms (with the correct label for the axes)
+    - Plot scatter plots
     - Plot histograms of the quotient of 2 variables (with the correct label for the axes)
 - `plot/fit.py`:
     - Plot the distribution of a variable together with his fitted PDF and the pull histogram
