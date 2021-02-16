@@ -1,42 +1,56 @@
 #!/usr/bin/env python3
 
-name_data_MC = 'MC_constr_opposedCB_sharedMean'
-name_data_KPiPi = "data_KPiPi_constr"
-name_BDT = 'gradient'
+branch_constr = 'Dst_constr_B0_M'
+low = 5150.
+high = 5545.
 
-name_data = 'common_B0TODst3pi_Dst_constr'
-name_data_B0toDstDs = 'common_B0TODstDs_Dst_constr'
-name_data_Dstto3pi = 'common_DstTO3pi'
+
+data_name_MC = 'MC_constr_opposedCB_sharedMean'
+data_name_KPiPi = "data_KPiPi_constr"
+BDT_name = 'gradient'
+
+data_name = 'common_B0TODst3pi_Dst_constr'
+data_name_B0toDstDs = 'common_B0TODstDs_Dst_constr'
+data_name_Dstto3pi = 'common_DstTO3pi'
 
 BDT = -1.25
 
-
-
 import zfit
 import timeit
-
+import pandas as pd
+import numpy as np
 from numpy.random import normal
 
+
 from bd2dst3pi.locations import loc
-from bd2dst3pi.definitions import years, magnets
+from bd2dst3pi.definition import (
+    years, magnets, latex_params, 
+    latex_params_B0toDstDs, latex_params_KPiPi
+)
+from bd2dst3pi.pandas_root import load_data, add_constr_Dst
 
 import sys
-sys.path.append(loc.SCRIPTS)
+sys.path.append(loc.ROOT + 'library/')
+
+from HEA.plot import plot_hist_auto, plot_hist, plot_hist2d_auto
+from HEA.plot.fit import plot_hist_fit_auto
+from HEA.fit import (
+    json_to_latex_table, 
+    retrieve_params, 
+    show_latex_table,
+    get_params_without_BDT
+)
+
+from HEA.fit.fit import (
+    launch_fit, save_params, 
+    define_zparams, sum_crystalball_or_gaussian, 
+    check_fit
+)
 
 
-from load_save_data import load_saved_root, load_data, add_constr_Dst, json_to_latex_table, retrieve_params, format_previous_params
-#import plot.histogram as h
-#from plot.fit import plot_hist_fit_particle
-#from plot.tool import save_file, set_text_LHCb
-from fit import launch_fit, define_zparams, save_params, sum_crystalball, check_fit
-from variables import name_params, name_params_KPiPi
-
-from matplotlib import use
-use('Agg') #no plot.show() --> no display needed
-
-name_params_KPiPi_print = {}
-for key, value in name_params_KPiPi.items():
-    name_params_KPiPi_print[key+'_Kpipi'] = name_params_KPiPi[key]
+import HEA.plot.tools as pt
+from HEA.tools.serial import dump_pickle
+from HEA.pandas_root import save_root, load_saved_root
 
 import argparse
 
@@ -65,22 +79,22 @@ def launch (args):
     ########################## JSON files ###############################
     print('JSON files')
 
-    name_data_BDT = f"{name_data}_BDT{BDT}"
-    name_data_B0toDstDs_BDT = f"{name_data_B0toDstDs}_BDT{BDT}"
+    data_BDT_name = f"{data_name}_BDT{BDT}"
+    data_name_B0toDstDs_BDT = f"{data_name_B0toDstDs}_BDT{BDT}"
 
     # Fixed alphaL, alphaR and nL
-    common_params = retrieve_params(name_data, name_folder=name_data)
+    common_params = retrieve_params(data_name, folder_name=data_name)
     # Fixed nR
-    MC_params = retrieve_params(name_data_MC, name_folder='MC')
+    MC_params = retrieve_params(data_name_MC, folder_name='MC')
 
     # B0->DstKPiPi
-    Kpipi_params = retrieve_params(name_data_KPiPi, name_folder='data_KPiPi') # already in MeV 
+    Kpipi_params = retrieve_params(data_name_KPiPi, folder_name='data_KPiPi') # already in MeV 
     
     # common with BDT cut (for startning values of the fit)
-    pipipi_params = format_previous_params(retrieve_params(name_data_BDT, name_folder=name_data), True)
+    pipipi_params = get_params_without_BDT(retrieve_params(data_BDT_name, folder_name=data_name), True)
     
     # B0->DstDs with BDT cut (for the B0->DstDs PDF shape)
-    Ds_params = format_previous_params(retrieve_params(name_data_B0toDstDs_BDT, name_folder=name_data_B0toDstDs), True) 
+    Ds_params = get_params_without_BDT(retrieve_params(data_name_B0toDstDs_BDT, folder_name=data_name_B0toDstDs), True) 
     ########################## FIXED PARAMS ###############################
     print('Fixed params')
 
@@ -116,13 +130,9 @@ def launch (args):
     ########################## LOAD DATAFRAME ###############################
     print('Dataframe')
 
-    df = load_saved_root('common_'+name_BDT, name_folder='common', vars=['B0_M', 'Dst_M', 'BDT'])
+    df = load_saved_root('common_'+BDT_name, folder_name='common', vars=['B0_M', 'Dst_M', 'BDT'])
     df = df.query(f"BDT > {BDT}")
     df = add_constr_Dst(df)
-
-    var = 'Dst_constr_B0_M'
-    low = 5150.
-    high = 5545.
 
     
 
@@ -131,7 +141,7 @@ def launch (args):
 
     for i in range(start, n_iters):
         verbose = i in show_index_list
-        name_iter = name_data_BDT + f'u{mode};{i}'
+        name_iter = data_BDT_name + f'u{mode};{i}'
 
         print('iter:', i)
 
@@ -150,7 +160,7 @@ def launch (args):
         ### FIT ON DstPiPiPi ============================================================     
         ## Starting point of the fit ...............
 
-        n_events_B0_M = len(df.query(f'{var} > {low} and {var} < {high}'))   
+        n_events_B0_M = len(df.query(f'{branch_constr} > {low} and {branch_constr} < {high}'))   
 
         initial_values = {
             # Signal        
@@ -181,7 +191,7 @@ def launch (args):
         zparams["n_bkgK"] = zfit.ComposedParameter(f"n_bkgK{i}", mult, params=[zparams['r_bkgK'],zparams['n_sig']])    
 
         ## PDFs .....................................
-        model_S, crystalBallL_S, crystalBallR_S = sum_crystalball(zparams['mu'], zparams['mu'],
+        model_S, crystalBallL_S, crystalBallR_S = sum_crystalball_or_gaussian(zparams['mu'], zparams['mu'],
                                                                   zparams['sigmaL'], zparams['sigmaR'],
                                                                   zparams['frac'], obs,                                                          
                                                                   zparams['alphaL'], zparams['alphaR'], 
@@ -191,7 +201,7 @@ def launch (args):
 
         gaussian_Ds = zfit.pdf.Gauss(zparams['mu_Ds'],zparams['sigma_Ds'],obs=obs)
 
-        model_K, crystalBallL_K, crystalBallR_K = sum_crystalball(zparams['muL_Kpipi'], zparams['muR_Kpipi'], 
+        model_K, crystalBallL_K, crystalBallR_K = sum_crystalball_or_gaussian(zparams['muL_Kpipi'], zparams['muR_Kpipi'], 
                                                                   zparams['sigmaL_Kpipi'], zparams['sigmaR_Kpipi'],
                                                                   zparams['fraction_Kpipi'], obs,
                                                                   zparams['alphaL_Kpipi'], zparams['alphaR_Kpipi'], 
@@ -206,7 +216,7 @@ def launch (args):
         model_K_ext = model_K.create_extended(zparams['n_bkgK'])
 
         model = zfit.pdf.SumPDF([model_S_ext, gaussian_Ds_ext, model_K_ext, exp_ext]) # gauss is folded by frac
-        data = zfit.Data.from_pandas(df[var], obs=obs)
+        data = zfit.Data.from_pandas(df[branch_constr], obs=obs)
 
         ## Do the fit ...............................
         start = timeit.default_timer()
@@ -218,25 +228,25 @@ def launch (args):
 
         ## Plot and save the fit ....................
         if verbose:
-            name_data_plot = name_data + f'{i}_details'
-            plot_hist_fit_particle(df, var, models = [model,[model_S_ext, crystalBallL_S, crystalBallR_S], gaussian_Ds_ext,
+            data_name_plot = data_name + f'{i}_details'
+            plot_hist_fit_auto(df, branch_constr, models = [model,[model_S_ext, crystalBallL_S, crystalBallR_S], gaussian_Ds_ext,
                                                       model_K_ext,exp_ext],
-                                   name_models = ["", '\n $B^0\\to D^{*-} 3\pi$','\n $B^0\\to D^{*-}D_s^+$',
+                                   models_names = ["", '\n $B^0\\to D^{*-} 3\pi$','\n $B^0\\to D^{*-}D_s^+$',
                                                   '\n $B^0\\to D^{*-} K^+ \pi^+\pi^-$','\n Combinatorial'],
-                                   obs=obs, n_bins = 100,mode_hist = False,
-                                   name_data = name_data_plot, name_folder=name_data,
+                                   obs=obs, n_bins = 100,bar_mode = False,
+                                   data_name = data_name_plot, folder_name=data_name,
                                    colors=['b','g','r','saddlebrown','y'],
-                                    params=params,name_params=name_params,
+                                    params=params,latex_params=latex_params,
                                    fontsize_leg=13.5, show_chi2=True,
                                    colWidths=[0.06,0.01,0.05,0.06], 
                                   )
 
-            name_data_plot = name_data + f'{i}'
-            plot_hist_fit_particle(df,var, models = [model, model_S_ext, gaussian_Ds_ext, model_K_ext,exp_ext],
-                                  name_models = ["", '\n $B^0\\to D^{*-} 3\pi$','\n $B^0\\to D^{*-}D_s^+$',
+            data_name_plot = data_name + f'{i}'
+            plot_hist_fit_auto(df,branch_constr, models = [model, model_S_ext, gaussian_Ds_ext, model_K_ext,exp_ext],
+                                  models_names = ["", '\n $B^0\\to D^{*-} 3\pi$','\n $B^0\\to D^{*-}D_s^+$',
                                                   '\n $B^0\\to D^{*-} K^+ \pi^+\pi^-$','\n Combinatorial'],
-                                   obs=obs, n_bins = 100,mode_hist = False,
-                                   name_data = name_data_plot, name_folder=name_data,
+                                   obs=obs, n_bins = 100,bar_mode = False,
+                                   data_name = data_name_plot, folder_name=data_name,
                                    colors=['b','g','r','saddlebrown','y'], loc_leg='best',
                                    fontsize_leg=20., pos_text_LHC=[0.95, 0.30, 'right'],
                                   )
@@ -246,7 +256,7 @@ def launch (args):
         save_params(params, name_iter, True, 
                     {'fit_ok': fit_ok, 'info_fit':str(result.info['original']), 'info_params': str(params),
                      'r_params': r_params}, 
-                    name_folder=name_data_BDT)
+                    folder_name=data_BDT_name)
 
 if __name__ == '__main__':
     main()
