@@ -1,3 +1,7 @@
+**new** (16 feb 2021) - The `scripts` have been improved and organised into a library in `library/HEA/`.\
+A documentation of the library has been made available [here](https://hea.readthedocs.io/en/latest/index.html).\
+The git repository 
+
 # Summary of the notebooks
 
 The notebooks are in the folder `notebooks`:
@@ -27,6 +31,8 @@ The notebooks are in the folder `notebooks`:
     2. Compute the systematic uncertainty associated with the fixed parameters, which is the quadratic sum of the standard deviation of the three $n_{sig}$ distributions obtained in the 3 modes
    
 # Summary of the scripts
+
+**A documentation of the library has been made available [here](https://hea.readthedocs.io/en/latest/index.html).**
 
 
 The notebooks use the functions defined in the scripts, located in the the folder `library/HEA/`:
