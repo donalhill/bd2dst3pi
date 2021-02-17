@@ -10,17 +10,12 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-import commonmark
-
-from recommonmark.parser import CommonMarkParser
-import recommonmark
-
 import sphinx_rtd_theme
+
 
 import os
 import sys
-basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-print(os.path.join(os.path.dirname(__file__), '..', 'HEA'))
+basedir = os.path.abspath(os.path.abspath("../.."))
 sys.path.insert(0, basedir)
 
 sys.setrecursionlimit(5000)
@@ -44,7 +39,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     "sphinx_rtd_theme",
-    "recommonmark",
+    'sphinx.ext.napoleon',
     'sphinx.ext.mathjax',
     'sphinx.ext.autosectionlabel',
 ]
@@ -58,12 +53,8 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
+autodoc_mock_imports = ["root_pandas", "zfit"]
 
-source_parsers = {
-    '.md': CommonMarkParser,
-}
-
-source_suffix = ['.rst', '.md']
 
 latex_engine = 'pdflatex'
 
@@ -87,7 +78,6 @@ latex_elements = {
     'preamble': r'''
         \usepackage{amsmath, amsfonts, amssymb, amsthm}
         \usepackage{graphicx}
-
         \usepackage{color}
         \usepackage{transparent}
         \usepackage{eso-pic}
@@ -113,4 +103,3 @@ html_theme_options = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
-

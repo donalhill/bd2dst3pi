@@ -160,51 +160,53 @@
 <span class="sd">* Transform an element into a list</span>
 <span class="sd">* Check if a list is included in another</span>
 <span class="sd">* Add a key-value couple to a dictionnary if the key is not in the dictionnary</span>
-<span class="sd">- ...</span>
+<span class="sd">* ...</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">HEA.tools</span> <span class="kn">import</span> <span class="n">assertion</span>
 
+
 <div class="viewcode-block" id="el_to_list"><a class="viewcode-back" href="../../../HEA.tools.html#HEA.tools.da.el_to_list">[docs]</a><span class="k">def</span> <span class="nf">el_to_list</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="n">len_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Turn a single non-list element ``el`` into a list of size ``len_list``</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    el : python object</span>
 <span class="sd">        element</span>
 <span class="sd">    len_list : int</span>
 <span class="sd">        length of the list to create</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    transformed_el : python object</span>
 <span class="sd">        If ``el`` is a ``list``, ``el``. Else, list of size ``len_list``: ``[el, el, ...]``</span>
-<span class="sd">    </span>
+
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
-<span class="sd">    A function taking two variables might have arguments that need to be a 2-list, whose elements correspond to the two variables. This function allows for the user to specify only a common element that will be converted into a 2-list.    </span>
+<span class="sd">    A function taking two variables might have arguments that need to be a 2-list, whose elements correspond to the two variables. This function allows for the user to specify only a common element that will be converted into a 2-list.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">assertion</span><span class="o">.</span><span class="n">is_list_tuple</span><span class="p">(</span><span class="n">el</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">el</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">len_list</span><span class="p">)]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">el</span></div>
 
+
 <div class="viewcode-block" id="list_included"><a class="viewcode-back" href="../../../HEA.tools.html#HEA.tools.da.list_included">[docs]</a><span class="k">def</span> <span class="nf">list_included</span><span class="p">(</span><span class="n">L1</span><span class="p">,</span> <span class="n">L2</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Check whether the list ``L1`` included in the list ``L2``</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    L1: list</span>
 <span class="sd">        potential sub-list</span>
 <span class="sd">    L2: list</span>
 <span class="sd">        potential larger list</span>
-<span class="sd">    </span>
+
 <span class="sd">    Return</span>
 <span class="sd">    ------</span>
 <span class="sd">    L1_included_L2: bool</span>
 <span class="sd">        ``True`` if ``L1`` included in ``L2``, else ``False``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-        
+
     <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">L1</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">l</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">L2</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
@@ -213,7 +215,7 @@
 
 <div class="viewcode-block" id="add_in_dic"><a class="viewcode-back" href="../../../HEA.tools.html#HEA.tools.da.add_in_dic">[docs]</a><span class="k">def</span> <span class="nf">add_in_dic</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">dic</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; if a ``key`` is not in the dictionnary ``dic``, add it with value specified by ``default``. In place.</span>
-<span class="sd">       </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    key : immutable python object</span>
@@ -226,53 +228,56 @@
     <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dic</span><span class="p">:</span>
         <span class="n">dic</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">default</span></div>
 
+
 <div class="viewcode-block" id="show_dictionnary"><a class="viewcode-back" href="../../../HEA.tools.html#HEA.tools.da.show_dictionnary">[docs]</a><span class="k">def</span> <span class="nf">show_dictionnary</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span> <span class="n">name_dic</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Print the dictionnary elements with line break</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    dic: dict</span>
 <span class="sd">        dictionnary to show</span>
 <span class="sd">    name_dic: str or None</span>
-<span class="sd">        name of the dictionnary    </span>
+<span class="sd">        name of the dictionnary</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="k">if</span> <span class="n">name_dic</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name_dic</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
-        
+
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">dic</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
+
 <div class="viewcode-block" id="flatten_2Dlist"><a class="viewcode-back" href="../../../HEA.tools.html#HEA.tools.da.flatten_2Dlist">[docs]</a><span class="k">def</span> <span class="nf">flatten_2Dlist</span><span class="p">(</span><span class="n">L2</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Flatten a n-dimensional list into a (n-1)-dimensional list (if it is indeed a list of dimension greater than or equal to 2)</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    L2 : python object</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    python object or 2D list</span>
 <span class="sd">        Flatten (n-1)-dimensional list</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">L2</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">L2</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">L2</span>
-    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">L2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="nb">list</span><span class="p">):</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">L2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">L2</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">el</span> <span class="k">for</span> <span class="n">L</span> <span class="ow">in</span> <span class="n">L2</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">L</span><span class="p">]</span></div>
 
+
 <div class="viewcode-block" id="get_element_list"><a class="viewcode-back" href="../../../HEA.tools.html#HEA.tools.da.get_element_list">[docs]</a><span class="k">def</span> <span class="nf">get_element_list</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Return an element of a list/tuple.</span>
 <span class="sd">    If ``L`` is not a list, returns it directly.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    L      : python object</span>
 <span class="sd">        potential list</span>
 <span class="sd">    index  : int</span>
 <span class="sd">        index of the list to get</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    python object</span>

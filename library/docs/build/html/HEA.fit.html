@@ -88,8 +88,6 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="HEA.config.html">HEA.config package</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">HEA.fit package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#module-HEA.fit">Package contents</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-HEA.fit.PDF">HEA.fit.PDF module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-HEA.fit.fit">HEA.fit.fit module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-HEA.fit.params">HEA.fit.params module</a></li>
@@ -164,10 +162,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="hea-fit-package">
-<h1>HEA.fit package<a class="headerlink" href="#hea-fit-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="module-HEA.fit">
-<span id="package-contents"></span><h2>Package contents<a class="headerlink" href="#module-HEA.fit" title="Permalink to this headline">¶</a></h2>
+  <div class="section" id="module-HEA.fit">
+<span id="hea-fit-package"></span><h1>HEA.fit package<a class="headerlink" href="#module-HEA.fit" title="Permalink to this headline">¶</a></h1>
 <p>Package in order to:</p>
 <ul class="simple">
 <li><p>Perform fits and save the result: <a class="reference internal" href="#module-HEA.fit.fit" title="HEA.fit.fit"><code class="xref py py-mod docutils literal notranslate"><span class="pre">HEA.fit.fit</span></code></a></p></li>
@@ -175,10 +171,6 @@
 <li><p>Perform fits: <a class="reference internal" href="#module-HEA.fit.fit" title="HEA.fit.fit"><code class="xref py py-mod docutils literal notranslate"><span class="pre">HEA.fit.fit</span></code></a></p></li>
 <li><p>Get characteristics of zFit PDFs: <a class="reference internal" href="#module-HEA.fit.PDF" title="HEA.fit.PDF"><code class="xref py py-mod docutils literal notranslate"><span class="pre">HEA.fit.PDF</span></code></a></p></li>
 </ul>
-</div>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
 <div class="section" id="module-HEA.fit.PDF">
 <span id="hea-fit-pdf-module"></span><h2>HEA.fit.PDF module<a class="headerlink" href="#module-HEA.fit.PDF" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
@@ -190,14 +182,18 @@
 <dt id="HEA.fit.PDF.get_chi2">
 <code class="sig-prename descclassname">HEA.fit.PDF.</code><code class="sig-name descname">get_chi2</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fit_counts</span></em>, <em class="sig-param"><span class="n">counts</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/HEA/fit/PDF.html#get_chi2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#HEA.fit.PDF.get_chi2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the <span class="math notranslate nohighlight">\(\chi^2\)</span> of a fit</p>
-<dl class="simple">
-<dt>fit_counts<span class="classifier">np.array or list</span></dt><dd><p>fitted number of counts</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fit_counts</strong> (<em>np.array</em><em> or </em><em>list</em>) – fitted number of counts</p></li>
+<li><p><strong>counts</strong> (<em>np.array</em><em> or </em><em>list</em>) – number of counts in the histogram of the fitted data</p></li>
+</ul>
 </dd>
-<dt>counts<span class="classifier">np.array or list</span></dt><dd><p>number of counts in the histogram of the fitted data</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>returns</strong> – <span class="math notranslate nohighlight">\(\chi^2\)</span> of the fit</p>
 </dd>
-</dl>
-<dl class="simple">
-<dt>returns<span class="classifier">float</span></dt><dd><p><span class="math notranslate nohighlight">\(\chi^2\)</span> of the fit</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
 </dd>
 </dl>
 </dd></dl>
@@ -206,12 +202,15 @@
 <dt id="HEA.fit.PDF.get_mean">
 <code class="sig-prename descclassname">HEA.fit.PDF.</code><code class="sig-name descname">get_mean</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pull</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/HEA/fit/PDF.html#get_mean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#HEA.fit.PDF.get_mean" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the mean of an array, excluding non-valid values.</p>
-<dl class="simple">
-<dt>pull<span class="classifier">numpy.array</span></dt><dd><p>Array</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pull</strong> (<em>numpy.array</em>) – Array</p>
 </dd>
-</dl>
-<dl class="simple">
-<dt>mean_pull: float</dt><dd><p>mean of the array</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>mean_pull</strong> – mean of the array</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
 </dd>
 </dl>
 </dd></dl>
@@ -221,12 +220,15 @@
 <code class="sig-prename descclassname">HEA.fit.PDF.</code><code class="sig-name descname">get_n_dof_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/HEA/fit/PDF.html#get_n_dof_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#HEA.fit.PDF.get_n_dof_model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the number of d.o.f. of a zfit model.
 A d.o.f. corresponds to a floated parameter in the model.</p>
-<dl class="simple">
-<dt>model: zfit.pdf.BasePDF</dt><dd><p>Model (PDF)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model</strong> (<em>zfit.pdf.BasePDF</em>) – Model (PDF)</p>
 </dd>
-</dl>
-<dl class="simple">
-<dt>n_dof: int</dt><dd><p>number of d.o.f. in the model</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>n_dof</strong> – number of d.o.f. in the model</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
 </dd>
 </dl>
 </dd></dl>
@@ -235,19 +237,21 @@ A d.o.f. corresponds to a floated parameter in the model.</p>
 <dt id="HEA.fit.PDF.get_n_dof_params_recurs">
 <code class="sig-prename descclassname">HEA.fit.PDF.</code><code class="sig-name descname">get_n_dof_params_recurs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">params_seen</span><span class="o">=</span><span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">n_dof_previous</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/HEA/fit/PDF.html#get_n_dof_params_recurs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#HEA.fit.PDF.get_n_dof_params_recurs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Recursive function to get the number of d.o.f. of a parameter</p>
-<dl class="simple">
-<dt>params<span class="classifier">zfit.pdf.Parameter or zfit.pdf.ComposedParameter</span></dt><dd><p>Parameter</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> (<em>zfit.pdf.Parameter</em><em> or </em><em>zfit.pdf.ComposedParameter</em>) – Parameter</p></li>
+<li><p><strong>params_seen</strong> (<em>list</em><em>(</em><em>str</em><em>)</em>) – list of the names of the parameters that have been seen so far</p></li>
+<li><p><strong>n_dof_previous</strong> (<em>int</em>) – number of d.o.f. counted so far</p></li>
+</ul>
 </dd>
-<dt>params_seen<span class="classifier">list(str)</span></dt><dd><p>list of the names of the parameters that have been seen so far</p>
-</dd>
-<dt>n_dof_previous<span class="classifier">int</span></dt><dd><p>number of d.o.f. counted so far</p>
-</dd>
-</dl>
-<dl class="simple">
-<dt>n_dof: int</dt><dd><p>number of d.o.f. contained in the list of parameters that aren’t in the list of
-parameters already seen, to which is added the number of d.o.f. already seen previously.</p>
-</dd>
-<dt>params_seen: list(str)</dt><dd><p>list of the names of the parameters that have been seen so far</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>n_dof</strong> (<em>int</em>) – number of d.o.f. contained in the list of parameters that aren’t in the list of
+parameters already seen, to which is added the number of d.o.f. already seen previously.</p></li>
+<li><p><strong>params_seen</strong> (<em>list(str)</em>) – list of the names of the parameters that have been seen so far</p></li>
+</ul>
+</p>
 </dd>
 </dl>
 </dd></dl>
@@ -256,16 +260,19 @@ parameters already seen, to which is added the number of d.o.f. already seen pre
 <dt id="HEA.fit.PDF.get_reduced_chi2">
 <code class="sig-prename descclassname">HEA.fit.PDF.</code><code class="sig-name descname">get_reduced_chi2</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fit_counts</span></em>, <em class="sig-param"><span class="n">counts</span></em>, <em class="sig-param"><span class="n">n_dof</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/HEA/fit/PDF.html#get_reduced_chi2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#HEA.fit.PDF.get_reduced_chi2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the reduced <span class="math notranslate nohighlight">\(\chi^2\)</span> of a fit</p>
-<dl class="simple">
-<dt>fit_counts<span class="classifier">np.array or list</span></dt><dd><p>fitted number of counts</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fit_counts</strong> (<em>np.array</em><em> or </em><em>list</em>) – fitted number of counts</p></li>
+<li><p><strong>counts</strong> (<em>np.array</em><em> or </em><em>list</em>) – number of counts in the histogram of the fitted data</p></li>
+<li><p><strong>n_dof</strong> (<em>int</em>) – number of d.o.f. in the model</p></li>
+</ul>
 </dd>
-<dt>counts<span class="classifier">np.array or list</span></dt><dd><p>number of counts in the histogram of the fitted data</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>returns</strong> – reduced <span class="math notranslate nohighlight">\(\chi^2\)</span> of the fit</p>
 </dd>
-<dt>n_dof<span class="classifier">int</span></dt><dd><p>number of d.o.f. in the model</p>
-</dd>
-</dl>
-<dl class="simple">
-<dt>returns<span class="classifier">float</span></dt><dd><p>reduced <span class="math notranslate nohighlight">\(\chi^2\)</span> of the fit</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
 </dd>
 </dl>
 </dd></dl>
@@ -274,12 +281,15 @@ parameters already seen, to which is added the number of d.o.f. already seen pre
 <dt id="HEA.fit.PDF.get_std">
 <code class="sig-prename descclassname">HEA.fit.PDF.</code><code class="sig-name descname">get_std</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pull</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/HEA/fit/PDF.html#get_std"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#HEA.fit.PDF.get_std" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the standard deviation of an array, excluding non-valid values.</p>
-<dl class="simple">
-<dt>pull<span class="classifier">numpy.array</span></dt><dd><p>Array</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pull</strong> (<em>numpy.array</em>) – Array</p>
 </dd>
-</dl>
-<dl class="simple">
-<dt>mean_pull: float</dt><dd><p>Standard deviation of the array</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>mean_pull</strong> – Standard deviation of the array</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
 </dd>
 </dl>
 </dd></dl>
@@ -297,13 +307,16 @@ parameters already seen, to which is added the number of d.o.f. already seen pre
 <dt id="HEA.fit.fit.check_fit">
 <code class="sig-prename descclassname">HEA.fit.fit.</code><code class="sig-name descname">check_fit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">result</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/HEA/fit/fit.html#check_fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#HEA.fit.fit.check_fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check if the fit has gone well. If a check has gone wrong, point it out.</p>
-<dl class="simple">
-<dt>result<span class="classifier">zfit.minimize.FitResult</span></dt><dd><p>result of the minimisation of the likelihood</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>result</strong> (<em>zfit.minimize.FitResult</em>) – result of the minimisation of the likelihood</p>
 </dd>
-</dl>
-<dl class="simple">
-<dt>Bool</dt><dd><p><code class="docutils literal notranslate"><span class="pre">False</span></code> if something has gone wrong in the fit.
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">False</span></code> if something has gone wrong in the fit.
 <code class="docutils literal notranslate"><span class="pre">True</span></code> if the fit has gone smoothly.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Bool</p>
 </dd>
 </dl>
 </dd></dl>
@@ -316,20 +329,21 @@ parameters already seen, to which is added the number of d.o.f. already seen pre
 <li><p>Gaussian if <code class="docutils literal notranslate"><span class="pre">alpha</span></code> or <code class="docutils literal notranslate"><span class="pre">n</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code></p></li>
 <li><p>CB if none of them are <code class="docutils literal notranslate"><span class="pre">None</span></code></p></li>
 </ul>
-<dl class="simple">
-<dt>mu<span class="classifier">zfit.Parameter</span></dt><dd><p>mean</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mu</strong> (<em>zfit.Parameter</em>) – mean</p></li>
+<li><p><strong>sigma</strong> (<em>zfit.Parameter</em>) – standard deviation</p></li>
+<li><p><strong>obs</strong> (<em>zfit.Space</em>) – Space</p></li>
+<li><p><strong>alpha</strong> (<em>zfit.Parameter</em>) – <span class="math notranslate nohighlight">\(\alpha\)</span> parameter of the tail</p></li>
+<li><p><strong>n</strong> (<em>zfit.Parameter</em>) – <span class="math notranslate nohighlight">\(n\)</span> parameter of the tail</p></li>
+</ul>
 </dd>
-<dt>sigma: zfit.Parameter</dt><dd><p>standard deviation</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>PDF</p>
 </dd>
-<dt>obs: zfit.Space</dt><dd><p>Space</p>
-</dd>
-<dt>alpha: zfit.Parameter</dt><dd><p><span class="math notranslate nohighlight">\(\alpha\)</span> parameter of the tail</p>
-</dd>
-<dt>n: zfit.Parameter</dt><dd><p><span class="math notranslate nohighlight">\(n\)</span> parameter of the tail</p>
-</dd>
-</dl>
-<dl class="simple">
-<dt>zfit.PDF.Gauss or zfit.PDF.CrystallBall</dt><dd><p>PDF</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>zfit.PDF.Gauss or zfit.PDF.CrystallBall</p>
 </dd>
 </dl>
 </dd></dl>
@@ -338,21 +352,25 @@ parameters already seen, to which is added the number of d.o.f. already seen pre
 <dt id="HEA.fit.fit.define_zparams">
 <code class="sig-prename descclassname">HEA.fit.fit.</code><code class="sig-name descname">define_zparams</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">initial_values</span></em>, <em class="sig-param"><span class="n">cut_BDT</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/HEA/fit/fit.html#define_zparams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#HEA.fit.fit.define_zparams" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define zparams from the dictionnary initial_values</p>
-<dl class="simple">
-<dt>initial_values<span class="classifier">dict </span></dt><dd><p>{“name_variable”: {“value”:, “low”:, “high”:, “floating”:}}</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>initial_values</strong> (<em>dict</em>) – {“name_variable”: {“value”:, “low”:, “high”:, “floating”:}}</p></li>
+<li><p><strong>cut_BDT</strong> (<em>float</em>) – performed cut on the BDT (BDT &gt; cutBDT)</p></li>
+<li><p><strong>num</strong> (<em>integer</em>) – Index of the fit. add <code class="docutils literal notranslate"><span class="pre">&quot;;{num}&quot;</span></code> at the end of the variable/
+the other functions I wrote allow to ignore the <code class="docutils literal notranslate"><span class="pre">&quot;;{num}&quot;</span></code> in the name of the variable. This is used manely in order to define a parameter several times (when tuning their values to make the fit convergent)</p></li>
+</ul>
 </dd>
-<dt>cut_BDT<span class="classifier">float</span></dt><dd><p>performed cut on the BDT (BDT &gt; cutBDT)</p>
-</dd>
-<dt>num<span class="classifier">integer</span></dt><dd><p>Index of the fit. add <code class="docutils literal notranslate"><span class="pre">&quot;;{num}&quot;</span></code> at the end of the variable/
-the other functions I wrote allow to ignore the <code class="docutils literal notranslate"><span class="pre">&quot;;{num}&quot;</span></code> in the name of the variable. This is used manely in order to define a parameter several times (when tuning their values to make the fit convergent)</p>
-</dd>
-</dl>
-<dl class="simple">
-<dt>zparams<span class="classifier">dict[str, zfit.Parameter]</span></dt><dd><p>Dictionnary of zfit Parameters whose keys are the name of the variables and:</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p><strong>zparams</strong> – Dictionnary of zfit Parameters whose keys are the name of the variables and:</p>
 <ul class="simple">
 <li><p>if cut_BDT is None, the key is just the name of the variable</p></li>
 <li><p>else, the key is <code class="docutils literal notranslate"><span class="pre">&quot;{name_variable}|BDT{cut_BDT}&quot;</span></code></p></li>
 </ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict[str, zfit.Parameter]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -361,20 +379,21 @@ the other functions I wrote allow to ignore the <code class="docutils literal no
 <dt id="HEA.fit.fit.launch_fit">
 <code class="sig-prename descclassname">HEA.fit.fit.</code><code class="sig-name descname">launch_fit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">extended</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/HEA/fit/fit.html#launch_fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#HEA.fit.fit.launch_fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the data with the model</p>
-<dl class="simple">
-<dt>model<span class="classifier">zfit.pdf.BasePDF</span></dt><dd><p>Overall PDF for the fit</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>zfit.pdf.BasePDF</em>) – Overall PDF for the fit</p></li>
+<li><p><strong>data</strong> (<em>zfit.data.Data</em>) – Data that will be fitted to</p></li>
+<li><p><strong>extended</strong> (<em>if True</em>) – Define or not an extended loss function</p></li>
+<li><p><strong>verbose</strong> (<em>Bool</em>) – print or not the result of the fit</p></li>
+</ul>
 </dd>
-<dt>data<span class="classifier">zfit.data.Data</span></dt><dd><p>Data that will be fitted to</p>
-</dd>
-<dt>extended<span class="classifier">if True</span></dt><dd><p>Define or not an extended loss function</p>
-</dd>
-<dt>verbose<span class="classifier">Bool</span></dt><dd><p>print or not the result of the fit</p>
-</dd>
-</dl>
-<dl class="simple">
-<dt>result: zfit.minimize.FitResult</dt><dd><p>result of the minimisation of the likelihood</p>
-</dd>
-<dt>param<span class="classifier">Dict[ZfitParameter, float]</span></dt><dd><p>Result <code class="docutils literal notranslate"><span class="pre">result.params</span></code> of the minimisation of the loss function (given by <a class="reference internal" href="#HEA.fit.fit.launch_fit" title="HEA.fit.fit.launch_fit"><code class="xref py py-func docutils literal notranslate"><span class="pre">launch_fit()</span></code></a>)</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>result</strong> (<em>zfit.minimize.FitResult</em>) – result of the minimisation of the likelihood</p></li>
+<li><p><strong>param</strong> (<em>Dict[ZfitParameter, float]</em>) – Result <code class="docutils literal notranslate"><span class="pre">result.params</span></code> of the minimisation of the loss function (given by <a class="reference internal" href="#HEA.fit.fit.launch_fit" title="HEA.fit.fit.launch_fit"><code class="xref py py-func docutils literal notranslate"><span class="pre">launch_fit()</span></code></a>)</p></li>
+</ul>
+</p>
 </dd>
 </dl>
 </dd></dl>
@@ -383,18 +402,16 @@ the other functions I wrote allow to ignore the <code class="docutils literal no
 <dt id="HEA.fit.fit.save_params">
 <code class="sig-prename descclassname">HEA.fit.fit.</code><code class="sig-name descname">save_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">name_file</span></em>, <em class="sig-param"><span class="n">uncertainty</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">dic_add</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">folder_name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">remove</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/HEA/fit/fit.html#save_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#HEA.fit.fit.save_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Save the parameters of the fit in <code class="docutils literal notranslate"><span class="pre">{loc['json']}/{name_file}_params.json</span></code></p>
-<dl class="simple">
-<dt>params<span class="classifier">dict[zfit.zfitParameter, float]</span></dt><dd><p>Result <code class="docutils literal notranslate"><span class="pre">'result.params'</span></code> of the minimisation of the loss function (given by <a class="reference internal" href="#HEA.fit.fit.launch_fit" title="HEA.fit.fit.launch_fit"><code class="xref py py-func docutils literal notranslate"><span class="pre">launch_fit()</span></code></a>)</p>
-</dd>
-<dt>name_file<span class="classifier">str</span></dt><dd><p>name of the file that will be saved</p>
-</dd>
-<dt>uncertainty<span class="classifier">bool</span></dt><dd><p>if True, save also the uncertainties (variables that contain ‘_err’ in their name)</p>
-</dd>
-<dt>dic_add<span class="classifier">dict or None</span></dt><dd><p>other parameters to be saved in the json file</p>
-</dd>
-<dt>folder_name<span class="classifier">str</span></dt><dd><p>name of the folder</p>
-</dd>
-<dt>remove<span class="classifier">list[str] or str or None</span></dt><dd><p>if not <code class="docutils literal notranslate"><span class="pre">None</span></code>, string to be removed from the names of the parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> (<em>dict</em><em>[</em><em>zfit.zfitParameter</em><em>, </em><em>float</em><em>]</em>) – Result <code class="docutils literal notranslate"><span class="pre">'result.params'</span></code> of the minimisation of the loss function (given by <a class="reference internal" href="#HEA.fit.fit.launch_fit" title="HEA.fit.fit.launch_fit"><code class="xref py py-func docutils literal notranslate"><span class="pre">launch_fit()</span></code></a>)</p></li>
+<li><p><strong>name_file</strong> (<em>str</em>) – name of the file that will be saved</p></li>
+<li><p><strong>uncertainty</strong> (<em>bool</em>) – if True, save also the uncertainties (variables that contain ‘_err’ in their name)</p></li>
+<li><p><strong>dic_add</strong> (<em>dict</em><em> or </em><em>None</em>) – other parameters to be saved in the json file</p></li>
+<li><p><strong>folder_name</strong> (<em>str</em>) – name of the folder</p></li>
+<li><p><strong>remove</strong> (<em>list</em><em>[</em><em>str</em><em>] or </em><em>str</em><em> or </em><em>None</em>) – if not <code class="docutils literal notranslate"><span class="pre">None</span></code>, string to be removed from the names of the parameters</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -404,28 +421,25 @@ the other functions I wrote allow to ignore the <code class="docutils literal no
 <code class="sig-prename descclassname">HEA.fit.fit.</code><code class="sig-name descname">sum_crystalball_or_gaussian</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">muL</span></em>, <em class="sig-param"><span class="n">muR</span></em>, <em class="sig-param"><span class="n">sigmaL</span></em>, <em class="sig-param"><span class="n">sigmaR</span></em>, <em class="sig-param"><span class="n">frac</span></em>, <em class="sig-param"><span class="n">obs</span></em>, <em class="sig-param"><span class="n">alphaL</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">alphaR</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">nL</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">nR</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/HEA/fit/fit.html#sum_crystalball_or_gaussian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#HEA.fit.fit.sum_crystalball_or_gaussian" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the sum of 2 crystall ball PDFs with tails in opposite side (left or right) or Gaussian PDFs.
 If the <code class="docutils literal notranslate"><span class="pre">alpha</span></code> or <code class="docutils literal notranslate"><span class="pre">n</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>, the corresponding distribution (left or right) is a gaussian.</p>
-<dl class="simple">
-<dt>muL<span class="classifier">zfit.Parameter</span></dt><dd><p>mean of the left distribution</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>muL</strong> (<em>zfit.Parameter</em>) – mean of the left distribution</p></li>
+<li><p><strong>muR</strong> (<em>zfit.Parameter</em>) – mean of the right distribution</p></li>
+<li><p><strong>sigmaL</strong> (<em>zfit.Parameter</em>) – standard deviation of the left distribution</p></li>
+<li><p><strong>sigmaR</strong> (<em>zfit.Parameter</em>) – standard deviation of the right distribution</p></li>
+<li><p><strong>obs</strong> (<em>zfit.Space</em>) – Space</p></li>
+<li><p><strong>alphaL</strong> (<em>zfit.Parameter</em>) – <span class="math notranslate nohighlight">\(\alpha_L\)</span> parameter of the left tail of the left distribution</p></li>
+<li><p><strong>alphaR</strong> (<em>zfit.Parameter</em>) – <span class="math notranslate nohighlight">\(\alpha_R\)</span> parameter of the left tail of the right distribution</p></li>
+<li><p><strong>nL</strong> (<em>zfit.Parameter</em>) – <span class="math notranslate nohighlight">\(n_L\)</span> parameter of the left tail of the left distribution</p></li>
+<li><p><strong>nL</strong> – <span class="math notranslate nohighlight">\(n_R\)</span> parameter of the right tail of the right distribution</p></li>
+</ul>
 </dd>
-<dt>muR<span class="classifier">zfit.Parameter</span></dt><dd><p>mean of the right distribution</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>PDF sum of 2 crystall ball or Gaussian PDFs.</p>
 </dd>
-<dt>sigmaL: zfit.Parameter</dt><dd><p>standard deviation of the left distribution</p>
-</dd>
-<dt>sigmaR: zfit.Parameter</dt><dd><p>standard deviation of the right distribution</p>
-</dd>
-<dt>obs: zfit.Space</dt><dd><p>Space</p>
-</dd>
-<dt>alphaL: zfit.Parameter</dt><dd><p><span class="math notranslate nohighlight">\(\alpha_L\)</span> parameter of the left tail of the left distribution</p>
-</dd>
-<dt>alphaR: zfit.Parameter</dt><dd><p><span class="math notranslate nohighlight">\(\alpha_R\)</span> parameter of the left tail of the right distribution</p>
-</dd>
-<dt>nL: zfit.Parameter</dt><dd><p><span class="math notranslate nohighlight">\(n_L\)</span> parameter of the left tail of the left distribution</p>
-</dd>
-<dt>nL: zfit.Parameter</dt><dd><p><span class="math notranslate nohighlight">\(n_R\)</span> parameter of the right tail of the right distribution</p>
-</dd>
-</dl>
-<dl class="simple">
-<dt>zfit.PDF.SumPDF</dt><dd><p>PDF sum of 2 crystall ball or Gaussian PDFs.</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>zfit.PDF.SumPDF</p>
 </dd>
 </dl>
 </dd></dl>
@@ -442,22 +456,28 @@ If the <code class="docutils literal notranslate"><span class="pre">alpha</span>
 <dt id="HEA.fit.params.get_params_without_BDT">
 <code class="sig-prename descclassname">HEA.fit.params.</code><code class="sig-name descname">get_params_without_BDT</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df_params</span></em>, <em class="sig-param"><span class="n">retrieve_err</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/HEA/fit/params.html#get_params_without_BDT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#HEA.fit.params.get_params_without_BDT" title="Permalink to this definition">¶</a></dt>
 <dd><p>In the keys of the dictionnary, remove the text from <code class="docutils literal notranslate"><span class="pre">|</span></code> onwards, except <cite>‘_err’</cite></p>
-<dl class="simple">
-<dt>df_params<span class="classifier">dict</span></dt><dd><p>It is supposed to contain the result of the fit, saved in the json files.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df_params</strong> (<em>dict</em>) – <p>It is supposed to contain the result of the fit, saved in the json files.
 For instance:</p>
-<ul class="simple">
+<ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">{'alphaL':</span> <span class="pre">value,</span> <span class="pre">'alphaL_err':</span> <span class="pre">value</span> <span class="pre">...}</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">{'alphaL|BDT-0.5':</span> <span class="pre">value,</span> <span class="pre">'alphaL|BDT-0.5'_err':</span> <span class="pre">value</span> <span class="pre">...}</span></code></p></li>
 </ul>
+</p></li>
+<li><p><strong>retrieve_err</strong> (<em>bool</em>) – if <code class="docutils literal notranslate"><span class="pre">True</span></code>, include the error of the variables in the file,
+i.e., the variables whose name contains <code class="docutils literal notranslate"><span class="pre">'_err'</span></code></p></li>
+</ul>
 </dd>
-<dt>retrieve_err<span class="classifier">bool</span></dt><dd><p>if <code class="docutils literal notranslate"><span class="pre">True</span></code>, include the error of the variables in the file, 
-i.e., the variables whose name contains <code class="docutils literal notranslate"><span class="pre">'_err'</span></code></p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Formatted dictionnary</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
 </dd>
 </dl>
-<dl class="simple">
-<dt>dict</dt><dd><p>Formatted dictionnary</p>
-</dd>
-</dl>
+<p class="rubric">Notes</p>
 <p>With my notations, for a BDT cut <code class="docutils literal notranslate"><span class="pre">BDT</span> <span class="pre">&gt;</span> <span class="pre">0.2</span></code>, the variables’ names ends with <code class="docutils literal notranslate"><span class="pre">'|BDT0.2'</span></code>.
 Then, this function will the a variable named <code class="docutils literal notranslate"><span class="pre">'variable|BDT0.2'</span></code> into a variable named <code class="docutils literal notranslate"><span class="pre">'variable'</span></code>.</p>
 </dd></dl>
@@ -466,12 +486,15 @@ Then, this function will the a variable named <code class="docutils literal notr
 <dt id="HEA.fit.params.get_params_without_err">
 <code class="sig-prename descclassname">HEA.fit.params.</code><code class="sig-name descname">get_params_without_err</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/HEA/fit/params.html#get_params_without_err"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#HEA.fit.params.get_params_without_err" title="Permalink to this definition">¶</a></dt>
 <dd><p>get the list of variables from the dictionnary of fitted parameters (including errors)</p>
-<dl class="simple">
-<dt>params<span class="classifier">dict</span></dt><dd><p>fitted parameters <code class="docutils literal notranslate"><span class="pre">{'alphaL':</span> <span class="pre">value,</span> <span class="pre">'alphaL_err':</span> <span class="pre">value</span> <span class="pre">...}</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>params</strong> (<em>dict</em>) – fitted parameters <code class="docutils literal notranslate"><span class="pre">{'alphaL':</span> <span class="pre">value,</span> <span class="pre">'alphaL_err':</span> <span class="pre">value</span> <span class="pre">...}</span></code></p>
 </dd>
-</dl>
-<dl class="simple">
-<dt>list</dt><dd><p>list of variables (excluding the error variables, whose name contain the <code class="docutils literal notranslate"><span class="pre">'_err'</span></code> string.</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of variables (excluding the error variables, whose name contain the <code class="docutils literal notranslate"><span class="pre">'_err'</span></code> string.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
 </dd>
 </dl>
 </dd></dl>
@@ -481,15 +504,15 @@ Then, this function will the a variable named <code class="docutils literal notr
 <code class="sig-prename descclassname">HEA.fit.params.</code><code class="sig-name descname">json_to_latex_table</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name_json</span></em>, <em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="n">latex_params</span></em>, <em class="sig-param"><span class="n">show</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/HEA/fit/params.html#json_to_latex_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#HEA.fit.params.json_to_latex_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>transform a json file that contains the fitted parameters and uncertainties into a latex table
 The latex table is stored into a .tex file in <code class="docutils literal notranslate"><span class="pre">{loc['tables']}/{name_json.tex}</span></code></p>
-<dl class="simple">
-<dt>name_json<span class="classifier">str</span></dt><dd><p>name of the json file to load
-also the name of the future .tex file that will be saved</p>
-</dd>
-<dt>path<span class="classifier">str</span></dt><dd><p>path of the json file compared to <code class="docutils literal notranslate"><span class="pre">loc['json']</span></code>, the default folder for json files.</p>
-</dd>
-<dt>latex_params<span class="classifier">dict</span></dt><dd><p>alternative name of the parameters (in latex)</p>
-</dd>
-<dt>show<span class="classifier">bool</span></dt><dd><p>if True, print the content of the created latex table code</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name_json</strong> (<em>str</em>) – name of the json file to load
+also the name of the future .tex file that will be saved</p></li>
+<li><p><strong>path</strong> (<em>str</em>) – path of the json file compared to <code class="docutils literal notranslate"><span class="pre">loc['json']</span></code>, the default folder for json files.</p></li>
+<li><p><strong>latex_params</strong> (<em>dict</em>) – alternative name of the parameters (in latex)</p></li>
+<li><p><strong>show</strong> (<em>bool</em>) – if True, print the content of the created latex table code</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -498,20 +521,22 @@ also the name of the future .tex file that will be saved</p>
 <dt id="HEA.fit.params.retrieve_params">
 <code class="sig-prename descclassname">HEA.fit.params.</code><code class="sig-name descname">retrieve_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">folder_name</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/HEA/fit/params.html#retrieve_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#HEA.fit.params.retrieve_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve the parameters saved in a json file</p>
-<dl class="simple">
-<dt>file_name<span class="classifier">str</span></dt><dd><p>name of the file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – name of the file</p></li>
+<li><p><strong>folder_name</strong> (<em>str</em>) – name of folder where the json file is
+(if None, there is no folder)</p></li>
+<li><p><strong>library</strong> (<em>str</em>) – <cite>‘json’</cite> or <cite>‘pickle’</cite></p></li>
+<li><p><strong>byte_read</strong> (<em>bool</em>) – Read in byte mode</p></li>
+</ul>
 </dd>
-<dt>folder_name<span class="classifier">str</span></dt><dd><p>name of folder where the json file is
-(if None, there is no folder)</p>
-</dd>
-<dt>library<span class="classifier">str</span></dt><dd><p><cite>‘json’</cite> or <cite>‘pickle’</cite></p>
-</dd>
-<dt>byte_read: bool</dt><dd><p>Read in byte mode</p>
-</dd>
-</dl>
-<dl class="simple">
-<dt>Python object or dic</dt><dd><p>dictionnary that contains the parameters stored in the json file
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dictionnary that contains the parameters stored in the json file
 in <code class="docutils literal notranslate"><span class="pre">{loc['json']}/{folder_name}/{name_data}_params.json</span></code></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Python object or dic</p>
 </dd>
 </dl>
 </dd></dl>
@@ -521,12 +546,15 @@ in <code class="docutils literal notranslate"><span class="pre">{loc['json']}/{f
 <code class="sig-prename descclassname">HEA.fit.params.</code><code class="sig-name descname">show_latex_table</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/HEA/fit/params.html#show_latex_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#HEA.fit.params.show_latex_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print the latex table that contains the result of a fit.
 It prints the content of the tex file in <code class="docutils literal notranslate"><span class="pre">{loc['table']}/{path}/{name}_params.tex</span></code></p>
-<dl class="simple">
-<dt>name<span class="classifier">str</span></dt><dd><p>name of the fit which we want to get the latex table with its result</p>
-</dd>
-<dt>path<span class="classifier">str</span></dt><dd><p>path of the .tex file from <code class="docutils literal notranslate"><span class="pre">loc['tables']</span></code>, where the .tex file is</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – name of the fit which we want to get the latex table with its result</p></li>
+<li><p><strong>path</strong> (<em>str</em>) – path of the .tex file from <code class="docutils literal notranslate"><span class="pre">loc['tables']</span></code>, where the .tex file is</p></li>
+</ul>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
 <p>the latex table must have been already generated, for instance with <a class="reference internal" href="#HEA.fit.params.json_to_latex_table" title="HEA.fit.params.json_to_latex_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">json_to_latex_table()</span></code></a>.</p>
 </dd></dl>
 

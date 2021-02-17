@@ -159,38 +159,39 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">makedirs</span>
-<span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">op</span> 
+<span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">op</span>
 
 
 <div class="viewcode-block" id="try_makedirs"><a class="viewcode-back" href="../../../HEA.tools.html#HEA.tools.dir.try_makedirs">[docs]</a><span class="k">def</span> <span class="nf">try_makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create all the necessary directories of a path</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    path : str</span>
 <span class="sd">         path</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="k">try</span><span class="p">:</span>
         <span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
         <span class="k">pass</span></div>
 
+
 <div class="viewcode-block" id="create_directory"><a class="viewcode-back" href="../../../HEA.tools.html#HEA.tools.dir.create_directory">[docs]</a><span class="k">def</span> <span class="nf">create_directory</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">name_folder</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Creates a folder in ``{directory}/{name_folder}``</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    directory : str</span>
 <span class="sd">        name of the directory where to create the folder</span>
 <span class="sd">    name_folder : str</span>
 <span class="sd">        name of the folder to create</span>
-<span class="sd">        </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    path: str</span>
 <span class="sd">        ``{directory}/{name_folder}``</span>
-<span class="sd">    </span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">name_folder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">name_folder</span><span class="p">)</span>

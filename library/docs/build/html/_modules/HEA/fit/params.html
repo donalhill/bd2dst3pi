@@ -165,10 +165,10 @@
 <span class="kn">from</span> <span class="nn">HEA.config</span> <span class="kn">import</span> <span class="n">loc</span>
 <span class="kn">from</span> <span class="nn">uncertainties</span> <span class="kn">import</span> <span class="n">ufloat</span>
 
-    
+
 <div class="viewcode-block" id="retrieve_params"><a class="viewcode-back" href="../../../HEA.fit.html#HEA.fit.params.retrieve_params">[docs]</a><span class="k">def</span> <span class="nf">retrieve_params</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">folder_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Retrieve the parameters saved in a json file</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    file_name   : str</span>
@@ -179,61 +179,62 @@
 <span class="sd">    library : str</span>
 <span class="sd">        `&#39;json&#39;` or `&#39;pickle&#39;`</span>
 <span class="sd">    byte_read: bool</span>
-<span class="sd">        Read in byte mode    </span>
-<span class="sd">    </span>
+<span class="sd">        Read in byte mode</span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    Python object or dic</span>
 <span class="sd">        dictionnary that contains the parameters stored in the json file</span>
 <span class="sd">        in ``{loc[&#39;json&#39;]}/{folder_name}/{name_data}_params.json``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">retrieve_json</span><span class="p">(</span><span class="n">file_name</span><span class="o">=</span><span class="n">file_name</span><span class="o">+</span><span class="s1">&#39;_params&#39;</span><span class="p">,</span> <span class="n">folder_name</span><span class="o">=</span><span class="n">folder_name</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">retrieve_json</span><span class="p">(</span><span class="n">file_name</span><span class="o">=</span><span class="n">file_name</span> <span class="o">+</span> <span class="s1">&#39;_params&#39;</span><span class="p">,</span>
+                         <span class="n">folder_name</span><span class="o">=</span><span class="n">folder_name</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="get_params_without_BDT"><a class="viewcode-back" href="../../../HEA.fit.html#HEA.fit.params.get_params_without_BDT">[docs]</a><span class="k">def</span> <span class="nf">get_params_without_BDT</span><span class="p">(</span><span class="n">df_params</span><span class="p">,</span> <span class="n">retrieve_err</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; </span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    In the keys of the dictionnary, remove the text from ``|`` onwards, except `&#39;_err&#39;`</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    df_params       : dict</span>
 <span class="sd">        It is supposed to contain the result of the fit, saved in the json files.</span>
 <span class="sd">        For instance:</span>
-<span class="sd">        </span>
+
 <span class="sd">        * ``{&#39;alphaL&#39;: value, &#39;alphaL_err&#39;: value ...}``</span>
 <span class="sd">        * ``{&#39;alphaL|BDT-0.5&#39;: value, &#39;alphaL|BDT-0.5&#39;_err&#39;: value ...}``</span>
 <span class="sd">    retrieve_err    : bool</span>
-<span class="sd">        if ``True``, include the error of the variables in the file, </span>
+<span class="sd">        if ``True``, include the error of the variables in the file,</span>
 <span class="sd">        i.e., the variables whose name contains ``&#39;_err&#39;``</span>
-<span class="sd">                            </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    dict</span>
 <span class="sd">        Formatted dictionnary</span>
-<span class="sd">    </span>
+
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
 <span class="sd">    With my notations, for a BDT cut ``BDT &gt; 0.2``, the variables&#39; names ends with ``&#39;|BDT0.2&#39;``.</span>
 <span class="sd">    Then, this function will the a variable named ``&#39;variable|BDT0.2&#39;`` into a variable named ``&#39;variable&#39;``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="n">df_params_formatted</span> <span class="o">=</span> <span class="p">{}</span>
-    
+
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">df_params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        
+
         <span class="n">is_variable_err</span> <span class="o">=</span> <span class="s1">&#39;_err&#39;</span> <span class="ow">in</span> <span class="n">key</span>
-        
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_variable_err</span> <span class="ow">or</span> <span class="n">retrieve_err</span><span class="p">:</span>  
-            <span class="k">if</span> <span class="n">is_variable_err</span><span class="p">:</span> 
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_variable_err</span> <span class="ow">or</span> <span class="n">retrieve_err</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_variable_err</span><span class="p">:</span>
                 <span class="c1"># remove &#39;_err&#39;</span>
                 <span class="c1"># which will be added back after removing what is after &#39;|&#39;</span>
                 <span class="n">new_key</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_err&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">new_key</span> <span class="o">=</span> <span class="n">key</span>
-                
+
             <span class="n">index</span> <span class="o">=</span> <span class="n">new_key</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">index</span><span class="o">==-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
                 <span class="n">index</span> <span class="o">=</span> <span class="kc">None</span>
 
             <span class="n">new_key</span> <span class="o">=</span> <span class="n">new_key</span><span class="p">[:</span><span class="n">index</span><span class="p">]</span>
@@ -242,37 +243,38 @@
                 <span class="n">new_key</span> <span class="o">+=</span> <span class="s1">&#39;_err&#39;</span>
 
             <span class="n">df_params_formatted</span><span class="p">[</span><span class="n">new_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-            
+
     <span class="k">return</span> <span class="n">df_params_formatted</span></div>
 
 
 <div class="viewcode-block" id="get_params_without_err"><a class="viewcode-back" href="../../../HEA.fit.html#HEA.fit.params.get_params_without_err">[docs]</a><span class="k">def</span> <span class="nf">get_params_without_err</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; get the list of variables from the dictionnary of fitted parameters (including errors)</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    params   : dict</span>
 <span class="sd">        fitted parameters ``{&#39;alphaL&#39;: value, &#39;alphaL_err&#39;: value ...}``</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    list</span>
 <span class="sd">        list of variables (excluding the error variables, whose name contain the ``&#39;_err&#39;`` string.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="n">keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
     <span class="n">variables</span> <span class="o">=</span> <span class="p">[]</span>
-    
+
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">key</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_err&#39;</span><span class="p">):</span>
             <span class="n">variables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-    
+
     <span class="k">return</span> <span class="n">variables</span></div>
+
 
 <div class="viewcode-block" id="json_to_latex_table"><a class="viewcode-back" href="../../../HEA.fit.html#HEA.fit.params.json_to_latex_table">[docs]</a><span class="k">def</span> <span class="nf">json_to_latex_table</span><span class="p">(</span><span class="n">name_json</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">latex_params</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; transform a json file that contains the fitted parameters and uncertainties into a latex table</span>
 <span class="sd">    The latex table is stored into a .tex file in ``{loc[&#39;tables&#39;]}/{name_json.tex}``</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    name_json     : str</span>
@@ -285,12 +287,12 @@
 <span class="sd">    show          : bool</span>
 <span class="sd">        if True, print the content of the created latex table code</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="c1"># Open the json file</span>
     <span class="n">directory</span> <span class="o">=</span> <span class="n">create_directory</span><span class="p">(</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;json&#39;</span><span class="p">],</span> <span class="n">path</span><span class="p">)</span>
     <span class="n">params</span> <span class="o">=</span> <span class="n">retrieve_params</span><span class="p">(</span><span class="n">name_json</span><span class="p">,</span> <span class="n">folder_name</span><span class="o">=</span><span class="n">path</span><span class="p">)</span>
     <span class="n">params</span> <span class="o">=</span> <span class="n">get_params_without_BDT</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-    
+
     <span class="c1"># Load the variables into ufloats</span>
     <span class="n">ufloats</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
@@ -308,41 +310,42 @@
         <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">hline</span><span class="se">\\</span><span class="s1">hline&#39;</span><span class="p">)</span>
         <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-        
+
         <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">ufloats</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">formatted_value</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s1">.2u</span><span class="si">}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;+/-&#39;</span><span class="p">,</span><span class="s1">&#39;\pm&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;e+0&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">times 10^&#39;</span><span class="p">)</span>
+            <span class="n">formatted_value</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s1">.2u</span><span class="si">}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                <span class="s1">&#39;+/-&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">pm&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;e+0&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">times 10^&#39;</span><span class="p">)</span>
             <span class="n">latex_param</span> <span class="o">=</span> <span class="n">latex_params</span><span class="p">[</span><span class="n">param</span><span class="p">]</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">latex_param</span><span class="si">}</span><span class="s2">&amp;$</span><span class="si">{</span><span class="n">formatted_value</span><span class="si">}</span><span class="s2">$</span><span class="se">\\\\</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">hline&#39;</span><span class="p">)</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">end</span><span class="si">{tabular}</span><span class="s2">&quot;</span><span class="p">)</span>
-    
+
     <span class="k">if</span> <span class="n">show</span><span class="p">:</span>
         <span class="n">show_latex_table</span><span class="p">(</span><span class="n">name_json</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span></div>
-        
+
+
 <div class="viewcode-block" id="show_latex_table"><a class="viewcode-back" href="../../../HEA.fit.html#HEA.fit.params.show_latex_table">[docs]</a><span class="k">def</span> <span class="nf">show_latex_table</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Print the latex table that contains the result of a fit.</span>
 <span class="sd">    It prints the content of the tex file in ``{loc[&#39;table&#39;]}/{path}/{name}_params.tex``</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    name  : str</span>
 <span class="sd">        name of the fit which we want to get the latex table with its result</span>
 <span class="sd">    path  : str</span>
 <span class="sd">        path of the .tex file from ``loc[&#39;tables&#39;]``, where the .tex file is</span>
-<span class="sd">    </span>
+
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
-<span class="sd">    the latex table must have been already generated, for instance with :py:func:`json_to_latex_table`. </span>
+<span class="sd">    the latex table must have been already generated, for instance with :py:func:`json_to_latex_table`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">directory</span> <span class="o">=</span> <span class="n">create_directory</span><span class="p">(</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;tables&#39;</span><span class="p">],</span> <span class="n">path</span><span class="p">)</span>
     <span class="n">file_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">directory</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">_params.tex&#39;</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Latex table in &quot;</span> <span class="o">+</span> <span class="n">file_path</span><span class="p">)</span>
-    
+
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span></div>
-    
 </pre></div>
 
            </div>

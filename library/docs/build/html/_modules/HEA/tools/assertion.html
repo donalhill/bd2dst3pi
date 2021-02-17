@@ -163,14 +163,15 @@
 
 <span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">signature</span>
 
+
 <div class="viewcode-block" id="is_list_tuple"><a class="viewcode-back" href="../../../HEA.tools.html#HEA.tools.assertion.is_list_tuple">[docs]</a><span class="k">def</span> <span class="nf">is_list_tuple</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Check that ``L`` is a ``list`` or a ``tuple``</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    L : python object</span>
 <span class="sd">        potential ``list`` or ``tuple``</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    bool:</span>
@@ -178,9 +179,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="nb">list</span><span class="p">))</span></div>
 
+
 <span class="k">def</span> <span class="nf">_assert_list_tuple</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Assert that ``L`` is a ``list`` or a ``tuple``</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    L : python object</span>
@@ -188,9 +190,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">assert</span> <span class="n">is_list_tuple</span><span class="p">(</span><span class="n">L</span><span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">L</span><span class="si">}</span><span class="s1"> is neither a list nor a tuple&#39;</span>
 
+
 <span class="k">def</span> <span class="nf">_assert_number_params_function</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Assert that the number of parameters of a function is equal to some number</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    function: func or None</span>
@@ -198,52 +201,55 @@
 <span class="sd">    n: int</span>
 <span class="sd">        number of expected arguments</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="k">if</span> <span class="n">function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="n">n</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;The number of parameters of the identity is 1 but the expected number of parameters is </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">&quot;</span>
-    
+        <span class="k">assert</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;The number of parameters of the identity is 1 but the expected number of parameters is </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">&quot;</span>
+
     <span class="n">sig</span> <span class="o">=</span> <span class="n">signature</span><span class="p">(</span><span class="n">function</span><span class="p">)</span>
     <span class="n">number_params_function</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sig</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
-            
-    <span class="k">assert</span> <span class="n">number_params_function</span><span class="o">==</span><span class="n">n</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;The number of parameters of the function </span><span class="si">{</span><span class="n">function</span><span class="si">}</span><span class="s2"> is </span><span class="si">{</span><span class="n">number_params_function</span><span class="si">}</span><span class="s2">, which is different from the expected number </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">assert</span> <span class="n">number_params_function</span> <span class="o">==</span> <span class="n">n</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;The number of parameters of the function </span><span class="si">{</span><span class="n">function</span><span class="si">}</span><span class="s2"> is </span><span class="si">{</span><span class="n">number_params_function</span><span class="si">}</span><span class="s2">, which is different from the expected number </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">&quot;</span>
+
 
 <span class="k">def</span> <span class="nf">_assert_same_length</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Assert that all the iterables provided have the same length</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    *args: list of iterables</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="p">:</span>
         <span class="k">return</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">common_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    
+
     <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span><span class="o">==</span><span class="n">common_length</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;The length of </span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s2"> is different from the other lengths of the list </span><span class="se">\n</span><span class="s2"> </span><span class="si">{</span><span class="n">args</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span>
+            <span class="n">arg</span><span class="p">)</span> <span class="o">==</span> <span class="n">common_length</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;The length of </span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s2"> is different from the other lengths of the list </span><span class="se">\n</span><span class="s2"> </span><span class="si">{</span><span class="n">args</span><span class="si">}</span><span class="s2">&quot;</span>
+
 
 <span class="k">def</span> <span class="nf">_assert_not_none</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Assert that a python object is not ``None``</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    e: python object</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="k">assert</span> <span class="n">e</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2"> is None&quot;</span>
+
 
 <span class="k">def</span> <span class="nf">_assert_is_in_iterable</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Assert that an element is in an iterable</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    e: python object</span>
 <span class="sd">    L: iterable</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="k">assert</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">L</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2"> is not in </span><span class="si">{</span><span class="n">L</span><span class="si">}</span><span class="s2">&quot;</span>
-    
 </pre></div>
 
            </div>

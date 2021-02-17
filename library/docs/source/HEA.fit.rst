@@ -1,16 +1,11 @@
 HEA.fit package
 ===============
 
-Package contents
-----------------
-
 .. automodule:: HEA.fit
    :members:
    :undoc-members:
    :show-inheritance:
 
-Submodules
-----------
 
 HEA.fit.PDF module
 ------------------
@@ -35,3 +30,5 @@ HEA.fit.params module
    :members:
    :undoc-members:
    :show-inheritance:
+
+
