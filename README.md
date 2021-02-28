@@ -1,6 +1,5 @@
 **new** (16 feb 2021) - The `scripts` have been improved and organised into a library in `library/HEA/`.\
 A documentation of the library has been made available [here](https://hea.readthedocs.io/en/latest/index.html).\
-The git repository 
 
 # Summary of the notebooks
 
